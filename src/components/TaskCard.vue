@@ -6,6 +6,9 @@ import TaskDialog from "@/components/TaskDialog.vue";
 import { X } from "@lucide/vue";
 import type { TaskRecord } from "@/db/db";
 
+// import { useAppVariants } from "@/variants.ts";
+// const { variants } = useAppVariants();
+
 const props = defineProps<{ task: TaskRecord }>();
 
 const boardStore = useBoardStore();
@@ -41,16 +44,12 @@ function closeEdit() {
     @mouseleave="isHovered = false"
     @dblclick="startEdit"
   >
-    <!-- Top Accent Bar -->
-    <div class="h-2.5 w-full" :style="{ backgroundColor: colors.accent }"></div>
-
-    <div class="relative flex flex-1 flex-col justify-center">
+    <div class="relative flex flex-1 items-center justify-center px-1">
       <!-- Delete button on hover -->
       <button
         v-show="isHovered"
         @click.stop="handleDelete"
-        class="rounded-0 absolute -top-2.5 right-0 px-0.5 text-gray-400 hover:text-red-500"
-        :style="{ backgroundColor: colors.base }"
+        class="absolute top-0 right-0 rounded p-0.5 text-gray-400 hover:text-red-500"
         title="Delete"
       >
         <X class="h-2.5 w-3" />
@@ -58,7 +57,7 @@ function closeEdit() {
 
       <!-- Task Title -->
       <p
-        class="line-clamp-5 min-w-0 px-1 text-center text-xs font-medium wrap-break-word whitespace-pre-wrap text-gray-800"
+        class="line-clamp-3 w-full text-center text-xs leading-tight font-medium wrap-break-word whitespace-pre-wrap text-gray-800"
       >
         {{ task.title }}
       </p>
