@@ -31,10 +31,6 @@ function getTasks(weekId: string, column: TaskRecord["column"]) {
   return boardStore.getTasksForWeek(weekId, column);
 }
 
-async function handleWeekTitleUpdate(id: string, title: string) {
-  await boardStore.updateWeekTitle(id, title);
-}
-
 async function handleWeekDelete(id: string) {
   await boardStore.deleteWeek(id);
 }
@@ -68,7 +64,6 @@ watch(
       :get-tasks="getTasks"
       @add-task="openAddTask"
       @add-week="addWeek"
-      @week-title-update="handleWeekTitleUpdate"
       @week-delete="handleWeekDelete"
       @week-complete="handleWeekComplete"
     />

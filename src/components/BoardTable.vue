@@ -14,7 +14,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   addTask: [weekId: string, column: TaskRecord["column"]];
   addWeek: [title: string];
-  weekTitleUpdate: [id: string, title: string];
   weekDelete: [id: string];
   weekComplete: [id: string];
 }>();

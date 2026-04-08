@@ -98,24 +98,6 @@ export const useBoardStore = defineStore("board", () => {
     if (week) weeks.value.push(week);
   }
 
-  async function updateWeekTitle(weekId: string, title: string): Promise<void> {
-    const week = weeks.value.find((s) => s.id === weekId);
-    const previousTitle = week?.title;
-
-    // Optimistic update
-    if (week) week.title = title;
-
-    try {
-      await weeksApi.updateWeek(weekId, { title });
-    } catch (error) {
-      // Rollback on error
-      if (week && previousTitle !== undefined) {
-        week.title = previousTitle;
-      }
-      throw error;
-    }
-  }
-
   async function deleteWeek(weekId: string): Promise<void> {
     await weeksApi.deleteWeek(weekId);
     weeks.value = weeks.value.filter((s) => s.id !== weekId);
@@ -258,7 +240,6 @@ export const useBoardStore = defineStore("board", () => {
     updateBoardTitle,
     deleteCurrentBoard,
     createWeek,
-    updateWeekTitle,
     deleteWeek,
     completeWeek,
     createTask,
