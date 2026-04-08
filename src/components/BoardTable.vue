@@ -132,23 +132,32 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
         <tr v-for="week in weeks" :key="week.id" class="week">
           <!-- Add Card or Complete Week Button Cell -->
           <td
-            class="h-[calc(var(--task-card-height)+8px*2+1px)] border-r border-b border-gray-200 bg-white p-2"
+            class="h-[calc(var(--task-card-height)+8px*2+1px)] border-r border-b border-gray-200 bg-white"
+            _click="
+              week.title === 'Categories'
+                ? emit('addTask', week.id, 'ALL')
+                : emit('weekComplete', week.id)
+            "
           >
             <button
               v-if="week.title === 'Categories'"
-              class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              class="group flex h-full w-full items-center justify-center text-gray-400 transition-colors"
               title="Добавить карточку"
               @click="emit('addTask', week.id, 'ALL')"
             >
-              <Plus class="h-4 w-4" />
+              <Plus
+                class="h-6 w-6 rounded p-1 transition-colors group-hover:bg-gray-100 group-hover:text-gray-600"
+              />
             </button>
             <button
               v-else
-              class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-green-600"
+              class="group flex h-full w-full items-center justify-center text-gray-400 transition-colors"
               title="Завершить неделю и вернуть карточки"
               @click="emit('weekComplete', week.id)"
             >
-              <Check class="h-4 w-4" />
+              <Check
+                class="h-6 w-6 rounded p-1 transition-colors group-hover:bg-gray-100 group-hover:text-green-600"
+              />
             </button>
           </td>
 
