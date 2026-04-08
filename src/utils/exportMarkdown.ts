@@ -1,5 +1,5 @@
 import type { BoardRecord, TaskRecord } from "@/db/db";
-import * as storiesApi from "@/db/stories";
+import * as storiesApi from "@/db/weeks.ts";
 import * as tasksApi from "@/db/tasks";
 
 const columnLabels: Record<string, string> = {

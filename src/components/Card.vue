@@ -2,7 +2,7 @@
 import { ref, computed } from "vue";
 import { useBoardStore } from "@/stores/board";
 import { generatePastelColor } from "@/utils/pastelColor";
-import TaskDialog from "@/components/TaskDialog.vue";
+import CardDialog from "@/components/CardDialog.vue";
 import { X } from "@lucide/vue";
 import type { TaskRecord } from "@/db/db";
 
@@ -64,7 +64,7 @@ function closeEdit() {
     </div>
 
     <!-- Edit Dialog -->
-    <TaskDialog
+    <CardDialog
       v-if="isEditing"
       :story-id="task.storyId"
       mode="edit"

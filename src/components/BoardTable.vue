@@ -2,7 +2,7 @@
 import { ref, watch } from "vue";
 import { VueDraggable, type DraggableEvent } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
-import TaskCard from "@/components/TaskCard.vue";
+import Card from "@/components/Card.vue";
 import { Plus, Check } from "@lucide/vue";
 import type { TaskRecord, StoryRecord } from "@/db/db";
 
@@ -174,7 +174,7 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
                 :fallback-tolerance="3"
                 @end="(e: any) => handleDragEnd(e, story.id, colInfo.key)"
               >
-                <TaskCard
+                <Card
                   v-for="task in cellLists[cellKey(story.id, colInfo.key)]"
                   :key="task.id"
                   :task="task"

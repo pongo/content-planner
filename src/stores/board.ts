@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { BoardRecord, StoryRecord, TaskRecord } from "@/db/db";
 import * as boardsApi from "@/db/boards";
-import * as storiesApi from "@/db/stories";
+import * as storiesApi from "@/db/weeks.ts";
 import * as tasksApi from "@/db/tasks";
 import { generateUniqueSlug } from "@/utils/slug";
 

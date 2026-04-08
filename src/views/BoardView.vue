@@ -2,16 +2,17 @@
 import { ref, watch } from "vue";
 import { useBoardStore } from "@/stores/board";
 import BoardTable from "@/components/BoardTable.vue";
-import TaskDialog from "@/components/TaskDialog.vue";
+import CardDialog from "@/components/CardDialog.vue";
 import BoardHeader from "@/components/BoardHeader.vue";
-import { useStoryManagement } from "@/composables/useStoryManagement";
 import type { TaskRecord } from "@/db/db";
 
 const props = defineProps<{ slug: string }>();
 
 const boardStore = useBoardStore();
 
-const { addStory } = useStoryManagement(boardStore);
+async function addWeek(title: string) {
+  await boardStore.createStory(title);
+}
 
 const addTaskStoryId = ref<string | null>(null);
 const addTaskColumn = ref<TaskRecord["column"] | null>(null);
@@ -66,7 +67,7 @@ watch(
       :stories="boardStore.stories"
       :get-tasks="getTasks"
       @add-task="openAddTask"
-      @add-story="addStory"
+      @add-story="addWeek"
       @story-title-update="handleStoryTitleUpdate"
       @story-delete="handleStoryDelete"
       @story-complete="handleStoryComplete"
@@ -78,7 +79,7 @@ watch(
   </div>
 
   <!-- Add Task Dialog -->
-  <TaskDialog
+  <CardDialog
     v-if="addTaskStoryId && addTaskColumn"
     :story-id="addTaskStoryId"
     :column="addTaskColumn"
