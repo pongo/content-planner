@@ -6,7 +6,7 @@ import { Check, X } from "@lucide/vue";
 import type { TaskRecord } from "@/db/db";
 
 const props = defineProps<{
-  storyId: string;
+  weekId: string;
   column?: TaskRecord["column"];
   mode: "create" | "edit";
   task?: TaskRecord;
@@ -44,7 +44,7 @@ async function handleSave() {
   try {
     if (props.mode === "create") {
       if (!props.column) throw new Error("Column is required for creation");
-      await boardStore.createTask(props.storyId, trimmed, props.column);
+      await boardStore.createTask(props.weekId, trimmed, props.column);
     } else if (props.task) {
       await boardStore.updateTask(props.task.id, {
         title: trimmed,

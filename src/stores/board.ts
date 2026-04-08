@@ -1,8 +1,8 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import type { BoardRecord, StoryRecord, TaskRecord } from "@/db/db";
+import type { BoardRecord, WeekRecord, TaskRecord } from "@/db/db";
 import * as boardsApi from "@/db/boards";
-import * as storiesApi from "@/db/weeks.ts";
+import * as weeksApi from "@/db/weeks.ts";
 import * as tasksApi from "@/db/tasks";
 import { generateUniqueSlug } from "@/utils/slug";
 
@@ -10,15 +10,15 @@ const COLUMNS: TaskRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT
 
 export const useBoardStore = defineStore("board", () => {
   const currentBoard = ref<BoardRecord | null>(null);
-  const stories = ref<StoryRecord[]>([]);
+  const weeks = ref<WeekRecord[]>([]);
   const tasks = ref<TaskRecord[]>([]);
   const loading = ref(false);
 
   const columns = computed(() => COLUMNS);
 
-  function getTasksForStory(storyId: string, column: TaskRecord["column"]) {
+  function getTasksForWeek(weekId: string, column: TaskRecord["column"]) {
     return tasks.value
-      .filter((t) => t.storyId === storyId && t.column === column)
+      .filter((t) => t.weekId === weekId && t.column === column)
       .sort((a, b) => a.order - b.order);
   }
 
@@ -30,11 +30,11 @@ export const useBoardStore = defineStore("board", () => {
       currentBoard.value = board;
 
       const boardId = board.id;
-      const [storiesList, allTasks] = await Promise.all([
-        storiesApi.getStoriesByBoard(boardId),
+      const [weeksList, allTasks] = await Promise.all([
+        weeksApi.getWeeksByBoard(boardId),
         loadAllTasksForBoard(boardId),
       ]);
-      stories.value = storiesList;
+      weeks.value = weeksList;
       tasks.value = allTasks;
     } finally {
       loading.value = false;
@@ -42,10 +42,10 @@ export const useBoardStore = defineStore("board", () => {
   }
 
   async function loadAllTasksForBoard(boardId: string): Promise<TaskRecord[]> {
-    const storiesList = await storiesApi.getStoriesByBoard(boardId);
+    const weeksList = await weeksApi.getWeeksByBoard(boardId);
     const allTasks: TaskRecord[] = [];
-    // Load tasks for all stories in parallel
-    const taskPromises = storiesList.map((story) => tasksApi.getTasksByStory(story.id));
+    // Load tasks for all weeks in parallel
+    const taskPromises = weeksList.map((week) => tasksApi.getTasksByWeek(week.id));
     const results = await Promise.all(taskPromises);
     for (const result of results) {
       allTasks.push(...result);
@@ -84,76 +84,76 @@ export const useBoardStore = defineStore("board", () => {
     if (!currentBoard.value) return;
     await boardsApi.deleteBoard(currentBoard.value.id);
     currentBoard.value = null;
-    stories.value = [];
+    weeks.value = [];
     tasks.value = [];
   }
 
-  async function createStory(title: string): Promise<void> {
+  async function createWeek(title: string): Promise<void> {
     if (!currentBoard.value) return;
     const id = crypto.randomUUID();
-    await storiesApi.createStory({ id, boardId: currentBoard.value.id, title });
-    const story = await storiesApi
-      .getStoriesByBoard(currentBoard.value.id)
+    await weeksApi.createWeek({ id, boardId: currentBoard.value.id, title });
+    const week = await weeksApi
+      .getWeeksByBoard(currentBoard.value.id)
       .then((s) => s.find((x) => x.id === id));
-    if (story) stories.value.push(story);
+    if (week) weeks.value.push(week);
   }
 
-  async function updateStoryTitle(storyId: string, title: string): Promise<void> {
-    const story = stories.value.find((s) => s.id === storyId);
-    const previousTitle = story?.title;
+  async function updateWeekTitle(weekId: string, title: string): Promise<void> {
+    const week = weeks.value.find((s) => s.id === weekId);
+    const previousTitle = week?.title;
 
     // Optimistic update
-    if (story) story.title = title;
+    if (week) week.title = title;
 
     try {
-      await storiesApi.updateStory(storyId, { title });
+      await weeksApi.updateWeek(weekId, { title });
     } catch (error) {
       // Rollback on error
-      if (story && previousTitle !== undefined) {
-        story.title = previousTitle;
+      if (week && previousTitle !== undefined) {
+        week.title = previousTitle;
       }
       throw error;
     }
   }
 
-  async function deleteStory(storyId: string): Promise<void> {
-    await storiesApi.deleteStory(storyId);
-    stories.value = stories.value.filter((s) => s.id !== storyId);
-    tasks.value = tasks.value.filter((t) => t.storyId !== storyId);
+  async function deleteWeek(weekId: string): Promise<void> {
+    await weeksApi.deleteWeek(weekId);
+    weeks.value = weeks.value.filter((s) => s.id !== weekId);
+    tasks.value = tasks.value.filter((t) => t.weekId !== weekId);
   }
 
-  async function completeStory(storyId: string): Promise<void> {
-    const categoriesStory = stories.value.find((s) => s.title === "Categories");
-    if (!categoriesStory) return;
+  async function completeWeek(weekId: string): Promise<void> {
+    const categoriesWeek = weeks.value.find((s) => s.title === "Categories");
+    if (!categoriesWeek) return;
 
-    await storiesApi.completeStory(storyId, categoriesStory.id);
+    await weeksApi.completeWeek(weekId, categoriesWeek.id);
 
     // Refresh store
     if (currentBoard.value) {
       const boardId = currentBoard.value.id;
-      const [storiesList, allTasks] = await Promise.all([
-        storiesApi.getStoriesByBoard(boardId),
+      const [weeksList, allTasks] = await Promise.all([
+        weeksApi.getWeeksByBoard(boardId),
         loadAllTasksForBoard(boardId),
       ]);
-      stories.value = storiesList;
+      weeks.value = weeksList;
       tasks.value = allTasks;
     }
   }
 
   async function createTask(
-    storyId: string,
+    weekId: string,
     title: string,
     column: TaskRecord["column"],
   ): Promise<void> {
     const id = crypto.randomUUID();
     await tasksApi.createTask({
       id,
-      storyId,
+      weekId,
       column,
       title,
     });
     const task = await tasksApi
-      .getTasksByStory(storyId, column)
+      .getTasksByWeek(weekId, column)
       .then((t) => t.find((x) => x.id === id));
     if (task) tasks.value.push(task);
   }
@@ -162,7 +162,7 @@ export const useBoardStore = defineStore("board", () => {
     taskId: string,
     updates: {
       title?: string;
-      storyId?: string;
+      weekId?: string;
       column?: TaskRecord["column"];
       order?: number;
     },
@@ -171,7 +171,7 @@ export const useBoardStore = defineStore("board", () => {
     const task = tasks.value.find((t) => t.id === taskId);
     if (task) {
       if (updates.title !== undefined) task.title = updates.title;
-      if (updates.storyId !== undefined) task.storyId = updates.storyId;
+      if (updates.weekId !== undefined) task.weekId = updates.weekId;
       if (updates.column !== undefined) task.column = updates.column;
       if (updates.order !== undefined) task.order = updates.order;
     }
@@ -184,18 +184,18 @@ export const useBoardStore = defineStore("board", () => {
 
   async function moveTask(
     taskId: string,
-    newStoryId: string,
+    newWeekId: string,
     newColumn: TaskRecord["column"],
     targetIndex?: number,
   ): Promise<void> {
     if (!taskId) return;
 
     // Get tasks in the target cell to compute correct order
-    const targetTasks = getTasksForStory(newStoryId, newColumn);
+    const targetTasks = getTasksForWeek(newWeekId, newColumn);
     const index = targetIndex ?? targetTasks.length;
 
     // Save the moved task with its new location and order
-    await tasksApi.moveTask(taskId, newStoryId, newColumn, index);
+    await tasksApi.moveTask(taskId, newWeekId, newColumn, index);
 
     // Reload all tasks so cellLists watcher picks up the changes
     if (currentBoard.value) {
@@ -205,11 +205,11 @@ export const useBoardStore = defineStore("board", () => {
   }
 
   async function saveCell(
-    storyId: string,
+    weekId: string,
     column: TaskRecord["column"],
     cellTasks: TaskRecord[],
   ): Promise<void> {
-    await tasksApi.saveCellTasks(storyId, column, cellTasks);
+    await tasksApi.saveCellTasks(weekId, column, cellTasks);
 
     // Reload all tasks so cellLists watcher picks up the changes
     if (currentBoard.value) {
@@ -219,18 +219,18 @@ export const useBoardStore = defineStore("board", () => {
   }
 
   async function saveBothCells(
-    sourceStoryId: string,
+    sourceWeekId: string,
     sourceColumn: TaskRecord["column"],
     sourceTasks: TaskRecord[],
-    targetStoryId: string,
+    targetWeekId: string,
     targetColumn: TaskRecord["column"],
     targetTasks: TaskRecord[],
   ): Promise<void> {
     await tasksApi.saveBothCellsTasks(
-      sourceStoryId,
+      sourceWeekId,
       sourceColumn,
       sourceTasks,
-      targetStoryId,
+      targetWeekId,
       targetColumn,
       targetTasks,
     );
@@ -248,19 +248,19 @@ export const useBoardStore = defineStore("board", () => {
 
   return {
     currentBoard,
-    stories,
+    weeks,
     tasks,
     loading,
     columns,
-    getTasksForStory,
+    getTasksForWeek,
     loadBoard,
     createBoard,
     updateBoardTitle,
     deleteCurrentBoard,
-    createStory,
-    updateStoryTitle,
-    deleteStory,
-    completeStory,
+    createWeek,
+    updateWeekTitle,
+    deleteWeek,
+    completeWeek,
     createTask,
     updateTask,
     deleteTask,

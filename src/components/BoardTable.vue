@@ -4,23 +4,23 @@ import { VueDraggable, type DraggableEvent } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
 import Card from "@/components/Card.vue";
 import { Plus, Check } from "@lucide/vue";
-import type { TaskRecord, StoryRecord } from "@/db/db";
+import type { TaskRecord, WeekRecord } from "@/db/db";
 
 const props = defineProps<{
-  stories: StoryRecord[];
-  getTasks: (storyId: string, column: TaskRecord["column"]) => TaskRecord[];
+  weeks: WeekRecord[];
+  getTasks: (weekId: string, column: TaskRecord["column"]) => TaskRecord[];
 }>();
 
 const emit = defineEmits<{
-  addTask: [storyId: string, column: TaskRecord["column"]];
-  addStory: [title: string];
-  storyTitleUpdate: [id: string, title: string];
-  storyDelete: [id: string];
-  storyComplete: [id: string];
+  addTask: [weekId: string, column: TaskRecord["column"]];
+  addWeek: [title: string];
+  weekTitleUpdate: [id: string, title: string];
+  weekDelete: [id: string];
+  weekComplete: [id: string];
 }>();
 
 function handleAddWeek() {
-  emit("addStory", new Date().toISOString());
+  emit("addWeek", new Date().toISOString());
 }
 
 const columnLabels: Record<string, string> = {
@@ -35,39 +35,39 @@ const columnLabels: Record<string, string> = {
 
 const columns: TaskRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
-function cellKey(storyId: string, column: TaskRecord["column"]) {
-  return `${storyId}:${column}`;
+function cellKey(weekId: string, column: TaskRecord["column"]) {
+  return `${weekId}:${column}`;
 }
 
-async function handleDragEnd(e: DraggableEvent, storyId: string, column: TaskRecord["column"]) {
-  const sourceKey = cellKey(storyId, column);
+async function handleDragEnd(e: DraggableEvent, weekId: string, column: TaskRecord["column"]) {
+  const sourceKey = cellKey(weekId, column);
   const sourceTasks = cellLists.value[sourceKey] ?? [];
 
-  const targetTd = e.to.closest("td[data-story-id]") as HTMLTableCellElement | null;
-  const targetStoryId = targetTd?.dataset.storyId;
+  const targetTd = e.to.closest("td[data-week-id]") as HTMLTableCellElement | null;
+  const targetWeekId = targetTd?.dataset.weekId;
   const targetCol = targetTd?.dataset.column as TaskRecord["column"] | undefined;
 
-  if (!targetStoryId || !targetCol) return;
+  if (!targetWeekId || !targetCol) return;
 
-  const targetKey = cellKey(targetStoryId, targetCol);
+  const targetKey = cellKey(targetWeekId, targetCol);
 
   if (e.to === e.from) {
-    await boardStore.saveCell(storyId, column, sourceTasks);
+    await boardStore.saveCell(weekId, column, sourceTasks);
   } else {
     const targetTasks = cellLists.value[targetKey] ?? [];
     await boardStore.saveBothCells(
-      storyId,
+      weekId,
       column,
       sourceTasks,
-      targetStoryId,
+      targetWeekId,
       targetCol,
       targetTasks,
     );
   }
 }
 
-function getStoryColumns(story: StoryRecord): { key: TaskRecord["column"]; colspan?: number }[] {
-  if (story.title === "Categories") {
+function getWeekColumns(week: WeekRecord): { key: TaskRecord["column"]; colspan?: number }[] {
+  if (week.title === "Categories") {
     return [{ key: "ALL", colspan: 7 }];
   }
   return columns.map((col) => ({ key: col }));
@@ -79,12 +79,12 @@ const boardStore = useBoardStore();
 
 // Sync cellLists with store data — mutate in-place to keep VueDraggable's reference
 function syncCellLists() {
-  for (const story of props.stories) {
-    const colsToSync = getStoryColumns(story);
+  for (const week of props.weeks) {
+    const colsToSync = getWeekColumns(week);
     for (const colInfo of colsToSync) {
       const col = colInfo.key;
-      const key = cellKey(story.id, col);
-      const newTasks = [...props.getTasks(story.id, col)];
+      const key = cellKey(week.id, col);
+      const newTasks = [...props.getTasks(week.id, col)];
       if (!cellLists.value[key]) {
         cellLists.value[key] = newTasks;
       } else {
@@ -97,8 +97,8 @@ function syncCellLists() {
   }
 }
 
-// Initial sync + watch for store changes (stories and tasks)
-watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
+// Initial sync + watch for store changes (weeks and tasks)
+watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
   deep: true,
   immediate: true,
 });
@@ -128,16 +128,16 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
 
       <!-- Week Rows -->
       <tbody>
-        <tr v-for="story in stories" :key="story.id">
+        <tr v-for="week in weeks" :key="week.id">
           <!-- Add Card or Complete Week Button Cell -->
           <td
             class="h-[calc(var(--task-card-height)+8px*2+1px)] border-r border-b border-gray-200 bg-white p-2"
           >
             <button
-              v-if="story.title === 'Categories'"
+              v-if="week.title === 'Categories'"
               class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
               title="Добавить карточку"
-              @click="emit('addTask', story.id, 'ALL')"
+              @click="emit('addTask', week.id, 'ALL')"
             >
               <Plus class="h-4 w-4" />
             </button>
@@ -145,7 +145,7 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
               v-else
               class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-green-600"
               title="Завершить неделю и вернуть карточки"
-              @click="emit('storyComplete', story.id)"
+              @click="emit('weekComplete', week.id)"
             >
               <Check class="h-4 w-4" />
             </button>
@@ -153,18 +153,18 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
 
           <!-- Card Cells with VueDraggable -->
           <td
-            v-for="colInfo in getStoryColumns(story)"
+            v-for="colInfo in getWeekColumns(week)"
             :key="colInfo.key"
             :colspan="colInfo.colspan"
             class="relative border-r border-b border-gray-200 bg-gray-50 p-2 align-top last:border-r-0"
-            :data-story-id="story.id"
+            :data-week-id="week.id"
             :data-column="colInfo.key"
             style="height: 1px"
           >
             <div class="flex h-full flex-col">
               <VueDraggable
-                :key="cellKey(story.id, colInfo.key)"
-                v-model="cellLists[cellKey(story.id, colInfo.key)]!"
+                :key="cellKey(week.id, colInfo.key)"
+                v-model="cellLists[cellKey(week.id, colInfo.key)]!"
                 :group="{ name: 'tasks', pull: true, put: true }"
                 class="flex flex-1 flex-wrap content-start items-start gap-2"
                 :animation="150"
@@ -172,10 +172,10 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
                 chosen-class="sortable-chosen"
                 fallback-class="sortable-fallback"
                 :fallback-tolerance="3"
-                @end="(e: any) => handleDragEnd(e, story.id, colInfo.key)"
+                @end="(e: any) => handleDragEnd(e, week.id, colInfo.key)"
               >
                 <Card
-                  v-for="task in cellLists[cellKey(story.id, colInfo.key)]"
+                  v-for="task in cellLists[cellKey(week.id, colInfo.key)]"
                   :key="task.id"
                   :task="task"
                 />

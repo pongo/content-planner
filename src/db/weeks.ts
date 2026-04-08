@@ -1,75 +1,75 @@
 import { getDB } from "./db";
-import type { StoryRecord } from "./db";
+import type { WeekRecord } from "./db";
 
-export async function getStoriesByBoard(boardId: string): Promise<StoryRecord[]> {
+export async function getWeeksByBoard(boardId: string): Promise<WeekRecord[]> {
   const db = await getDB();
-  const stories = await db.getAllFromIndex("stories", "by-board", boardId);
-  return stories.sort((a, b) => a.order - b.order);
+  const weeks = await db.getAllFromIndex("weeks", "by-board", boardId);
+  return weeks.sort((a, b) => a.order - b.order);
 }
 
-export async function createStory(story: Omit<StoryRecord, "order">): Promise<string> {
+export async function createWeek(week: Omit<WeekRecord, "order">): Promise<string> {
   const db = await getDB();
-  const existing = await getStoriesByBoard(story.boardId);
+  const existing = await getWeeksByBoard(week.boardId);
   const order = existing.length > 0 ? existing[existing.length - 1]!.order + 1 : 0;
-  const record: StoryRecord = { ...story, order };
-  await db.add("stories", record);
+  const record: WeekRecord = { ...week, order };
+  await db.add("weeks", record);
   return record.id;
 }
 
-export async function updateStory(
+export async function updateWeek(
   id: string,
-  updates: Partial<Omit<StoryRecord, "id" | "boardId">>,
+  updates: Partial<Omit<WeekRecord, "id" | "boardId">>,
 ): Promise<void> {
   const db = await getDB();
-  const story = await db.get("stories", id);
-  if (!story) throw new Error(`Story ${id} not found`);
-  Object.assign(story, updates);
-  await db.put("stories", story);
+  const week = await db.get("weeks", id);
+  if (!week) throw new Error(`Week ${id} not found`);
+  Object.assign(week, updates);
+  await db.put("weeks", week);
 }
 
-export async function deleteStory(id: string): Promise<void> {
+export async function deleteWeek(id: string): Promise<void> {
   const db = await getDB();
-  const tx = db.transaction(["stories", "tasks"], "readwrite");
-  const storiesStore = tx.objectStore("stories");
+  const tx = db.transaction(["weeks", "tasks"], "readwrite");
+  const weeksStore = tx.objectStore("weeks");
   const tasksStore = tx.objectStore("tasks");
 
-  // Get all tasks associated with the story
-  const taskIds = await tasksStore.index("by-story").getAllKeys(id);
+  // Get all tasks associated with the week
+  const taskIds = await tasksStore.index("by-week").getAllKeys(id);
 
-  // Delete all tasks and the story in parallel, wait for tx to commit
+  // Delete all tasks and the week in parallel, wait for tx to commit
   await Promise.all([
     ...taskIds.map((taskId) => tasksStore.delete(taskId)),
-    storiesStore.delete(id),
+    weeksStore.delete(id),
     tx.done,
   ]);
 }
 
-export async function completeStory(storyId: string, targetStoryId: string): Promise<void> {
+export async function completeWeek(weekId: string, targetWeekId: string): Promise<void> {
   const db = await getDB();
-  const tx = db.transaction(["stories", "tasks"], "readwrite");
-  const storiesStore = tx.objectStore("stories");
+  const tx = db.transaction(["weeks", "tasks"], "readwrite");
+  const weeksStore = tx.objectStore("weeks");
   const tasksStore = tx.objectStore("tasks");
 
-  // Get all tasks associated with the source story
-  const taskIds = await tasksStore.index("by-story").getAllKeys(storyId);
+  // Get all tasks associated with the source week
+  const taskIds = await tasksStore.index("by-week").getAllKeys(weekId);
 
   // Get target tasks to determine order
-  const targetTasks = await tasksStore.index("by-story").getAll(targetStoryId);
+  const targetTasks = await tasksStore.index("by-week").getAll(targetWeekId);
   let nextOrder = targetTasks.length;
 
   // Move tasks and update their properties
   for (const taskId of taskIds) {
     const task = await tasksStore.get(taskId);
     if (task) {
-      task.storyId = targetStoryId;
+      task.weekId = targetWeekId;
       task.column = "ALL";
       task.order = nextOrder++;
       await tasksStore.put(task);
     }
   }
 
-  // Delete the source story
-  await storiesStore.delete(storyId);
+  // Delete the source week
+  await weeksStore.delete(weekId);
 
   await tx.done;
 }

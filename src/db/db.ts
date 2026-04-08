@@ -7,7 +7,7 @@ export interface BoardRecord {
   createdAt: number;
 }
 
-export interface StoryRecord {
+export interface WeekRecord {
   id: string;
   boardId: string;
   title: string;
@@ -16,7 +16,7 @@ export interface StoryRecord {
 
 export interface TaskRecord {
   id: string;
-  storyId: string;
+  weekId: string;
   column: "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN" | "ALL";
   title: string;
   order: number;
@@ -28,15 +28,15 @@ export interface ContentPlannerDB extends DBSchema {
     value: BoardRecord;
     indexes: { "by-slug": string };
   };
-  stories: {
+  weeks: {
     key: string;
-    value: StoryRecord;
+    value: WeekRecord;
     indexes: { "by-board": string };
   };
   tasks: {
     key: string;
     value: TaskRecord;
-    indexes: { "by-story": string; "by-story-column": [string, string] };
+    indexes: { "by-week": string; "by-week-column": [string, string] };
   };
 }
 
@@ -52,17 +52,17 @@ export async function initDB() {
         boardStore.createIndex("by-slug", "slug", { unique: true });
       }
 
-      // Stories store
-      if (!db.objectStoreNames.contains("stories")) {
-        const storyStore = db.createObjectStore("stories", { keyPath: "id" });
-        storyStore.createIndex("by-board", "boardId");
+      // Weeks store
+      if (!db.objectStoreNames.contains("weeks")) {
+        const weekStore = db.createObjectStore("weeks", { keyPath: "id" });
+        weekStore.createIndex("by-board", "boardId");
       }
 
       // Tasks store
       if (!db.objectStoreNames.contains("tasks")) {
         const taskStore = db.createObjectStore("tasks", { keyPath: "id" });
-        taskStore.createIndex("by-story", "storyId");
-        taskStore.createIndex("by-story-column", ["storyId", "column"], {
+        taskStore.createIndex("by-week", "weekId");
+        taskStore.createIndex("by-week-column", ["weekId", "column"], {
           multiEntry: false,
         });
       }

@@ -11,36 +11,36 @@ const props = defineProps<{ slug: string }>();
 const boardStore = useBoardStore();
 
 async function addWeek(title: string) {
-  await boardStore.createStory(title);
+  await boardStore.createWeek(title);
 }
 
-const addTaskStoryId = ref<string | null>(null);
+const addTaskWeekId = ref<string | null>(null);
 const addTaskColumn = ref<TaskRecord["column"] | null>(null);
 
-function openAddTask(storyId: string, column: TaskRecord["column"]) {
-  addTaskStoryId.value = storyId;
+function openAddTask(weekId: string, column: TaskRecord["column"]) {
+  addTaskWeekId.value = weekId;
   addTaskColumn.value = column;
 }
 
 function closeAddTask() {
-  addTaskStoryId.value = null;
+  addTaskWeekId.value = null;
   addTaskColumn.value = null;
 }
 
-function getTasks(storyId: string, column: TaskRecord["column"]) {
-  return boardStore.getTasksForStory(storyId, column);
+function getTasks(weekId: string, column: TaskRecord["column"]) {
+  return boardStore.getTasksForWeek(weekId, column);
 }
 
-async function handleStoryTitleUpdate(id: string, title: string) {
-  await boardStore.updateStoryTitle(id, title);
+async function handleWeekTitleUpdate(id: string, title: string) {
+  await boardStore.updateWeekTitle(id, title);
 }
 
-async function handleStoryDelete(id: string) {
-  await boardStore.deleteStory(id);
+async function handleWeekDelete(id: string) {
+  await boardStore.deleteWeek(id);
 }
 
-async function handleStoryComplete(id: string) {
-  await boardStore.completeStory(id);
+async function handleWeekComplete(id: string) {
+  await boardStore.completeWeek(id);
 }
 
 watch(
@@ -64,13 +64,13 @@ watch(
 
     <!-- Board Table -->
     <BoardTable
-      :stories="boardStore.stories"
+      :weeks="boardStore.weeks"
       :get-tasks="getTasks"
       @add-task="openAddTask"
-      @add-story="addWeek"
-      @story-title-update="handleStoryTitleUpdate"
-      @story-delete="handleStoryDelete"
-      @story-complete="handleStoryComplete"
+      @add-week="addWeek"
+      @week-title-update="handleWeekTitleUpdate"
+      @week-delete="handleWeekDelete"
+      @week-complete="handleWeekComplete"
     />
   </div>
 
@@ -80,8 +80,8 @@ watch(
 
   <!-- Add Task Dialog -->
   <CardDialog
-    v-if="addTaskStoryId && addTaskColumn"
-    :story-id="addTaskStoryId"
+    v-if="addTaskWeekId && addTaskColumn"
+    :week-id="addTaskWeekId"
     :column="addTaskColumn"
     mode="create"
     @close="closeAddTask"

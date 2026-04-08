@@ -22,7 +22,7 @@ async function handleCreate() {
   try {
     const slug = await boardStore.createBoard(trimmed);
     await boardStore.loadBoard(slug);
-    await boardStore.createStory("Categories");
+    await boardStore.createWeek("Categories");
     router.push(`/${slug}`);
   } catch (e) {
     console.error("Failed to create board:", e);

@@ -3,20 +3,20 @@ import type { TaskRecord } from "./db";
 
 type TaskColumn = TaskRecord["column"];
 
-export async function getTasksByStory(storyId: string, column?: TaskColumn): Promise<TaskRecord[]> {
+export async function getTasksByWeek(weekId: string, column?: TaskColumn): Promise<TaskRecord[]> {
   const db = await getDB();
   let result: TaskRecord[];
   if (column) {
-    result = await db.getAllFromIndex("tasks", "by-story-column", [storyId, column]);
+    result = await db.getAllFromIndex("tasks", "by-week-column", [weekId, column]);
   } else {
-    result = await db.getAllFromIndex("tasks", "by-story", storyId);
+    result = await db.getAllFromIndex("tasks", "by-week", weekId);
   }
   return result.sort((a, b) => a.order - b.order);
 }
 
 export async function createTask(task: Omit<TaskRecord, "order">): Promise<string> {
   const db = await getDB();
-  const existing = await getTasksByStory(task.storyId, task.column);
+  const existing = await getTasksByWeek(task.weekId, task.column);
   const order = existing.length > 0 ? existing[existing.length - 1]!.order + 1 : 0;
   const record: TaskRecord = { ...task, order };
   await db.add("tasks", record);
@@ -41,7 +41,7 @@ export async function deleteTask(id: string): Promise<void> {
 
 export async function moveTask(
   taskId: string,
-  newStoryId: string,
+  newWeekId: string,
   newColumn: TaskColumn,
   insertIndex?: number,
 ): Promise<void> {
@@ -50,7 +50,7 @@ export async function moveTask(
   if (!task) throw new Error(`Task ${taskId} not found`);
 
   // Update task location and order
-  task.storyId = newStoryId;
+  task.weekId = newWeekId;
   task.column = newColumn;
   task.order = insertIndex ?? task.order;
   await db.put("tasks", task);
@@ -60,7 +60,7 @@ export async function moveTask(
  * Save all tasks in a cell atomically within a single transaction.
  */
 export async function saveCellTasks(
-  storyId: string,
+  weekId: string,
   column: TaskColumn,
   tasks: TaskRecord[],
 ): Promise<void> {
@@ -70,7 +70,7 @@ export async function saveCellTasks(
 
   // Put all tasks with correct metadata. Existing records are overwritten by ID.
   for (let i = 0; i < tasks.length; i++) {
-    const t = { ...tasks[i]!, order: i, storyId, column };
+    const t = { ...tasks[i]!, order: i, weekId, column };
     await store.put(t);
   }
 
@@ -82,10 +82,10 @@ export async function saveCellTasks(
  * Used for cross-cell moves.
  */
 export async function saveBothCellsTasks(
-  sourceStoryId: string,
+  sourceWeekId: string,
   sourceColumn: TaskColumn,
   sourceTasks: TaskRecord[],
-  targetStoryId: string,
+  targetWeekId: string,
   targetColumn: TaskColumn,
   targetTasks: TaskRecord[],
 ): Promise<void> {
@@ -94,11 +94,11 @@ export async function saveBothCellsTasks(
   const store = tx.objectStore("tasks");
 
   for (let i = 0; i < sourceTasks.length; i++) {
-    const t = { ...sourceTasks[i]!, order: i, storyId: sourceStoryId, column: sourceColumn };
+    const t = { ...sourceTasks[i]!, order: i, weekId: sourceWeekId, column: sourceColumn };
     await store.put(t);
   }
   for (let i = 0; i < targetTasks.length; i++) {
-    const t = { ...targetTasks[i]!, order: i, storyId: targetStoryId, column: targetColumn };
+    const t = { ...targetTasks[i]!, order: i, weekId: targetWeekId, column: targetColumn };
     await store.put(t);
   }
 

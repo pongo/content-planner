@@ -36,25 +36,25 @@ export async function updateBoard(
 
 export async function deleteBoard(id: string): Promise<void> {
   const db = await getDB();
-  const tx = db.transaction(["boards", "stories", "tasks"], "readwrite");
+  const tx = db.transaction(["boards", "weeks", "tasks"], "readwrite");
   const boardsStore = tx.objectStore("boards");
-  const storiesStore = tx.objectStore("stories");
+  const weeksStore = tx.objectStore("weeks");
   const tasksStore = tx.objectStore("tasks");
 
-  // Get all stories for this board
-  const storyIds = await storiesStore.index("by-board").getAllKeys(id);
+  // Get all weeks for this board
+  const weekIds = await weeksStore.index("by-board").getAllKeys(id);
 
-  // Get all tasks for all stories
+  // Get all tasks for all weeks
   const allTaskIds: string[] = [];
-  for (const storyId of storyIds) {
-    const taskIds = await tasksStore.index("by-story").getAllKeys(storyId);
+  for (const weekId of weekIds) {
+    const taskIds = await tasksStore.index("by-week").getAllKeys(weekId);
     allTaskIds.push(...taskIds);
   }
 
   // Delete everything in parallel, wait for tx to commit
   await Promise.all([
     ...allTaskIds.map((taskId) => tasksStore.delete(taskId)),
-    ...storyIds.map((storyId) => storiesStore.delete(storyId)),
+    ...weekIds.map((weekId) => weeksStore.delete(weekId)),
     boardsStore.delete(id),
     tx.done,
   ]);

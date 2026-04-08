@@ -66,7 +66,7 @@ function closeEdit() {
     <!-- Edit Dialog -->
     <CardDialog
       v-if="isEditing"
-      :story-id="task.storyId"
+      :week-id="task.weekId"
       mode="edit"
       :task="task"
       @close="closeEdit"

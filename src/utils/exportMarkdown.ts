@@ -1,5 +1,5 @@
 import type { BoardRecord, TaskRecord } from "@/db/db";
-import * as storiesApi from "@/db/weeks.ts";
+import * as weeksApi from "@/db/weeks.ts";
 import * as tasksApi from "@/db/tasks";
 
 const columnLabels: Record<string, string> = {
@@ -15,12 +15,12 @@ const columnLabels: Record<string, string> = {
 const columns: TaskRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 export async function exportBoardToMarkdown(board: BoardRecord): Promise<string> {
-  const stories = await storiesApi.getStoriesByBoard(board.id);
-  const storyTasksMap: Record<string, TaskRecord[]> = {};
+  const weeks = await weeksApi.getWeeksByBoard(board.id);
+  const weekTasksMap: Record<string, TaskRecord[]> = {};
 
   await Promise.all(
-    stories.map(async (story) => {
-      storyTasksMap[story.id] = await tasksApi.getTasksByStory(story.id);
+    weeks.map(async (week) => {
+      weekTasksMap[week.id] = await tasksApi.getTasksByWeek(week.id);
     }),
   );
 
@@ -29,17 +29,17 @@ export async function exportBoardToMarkdown(board: BoardRecord): Promise<string>
   lines.push("");
   lines.push(`${window.location.origin}/${board.slug}`);
 
-  for (const story of stories) {
+  for (const week of weeks) {
     lines.push("");
-    lines.push(`## ${story.title}`);
+    lines.push(`## ${week.title}`);
 
-    const storyTasks = storyTasksMap[story.id] ?? [];
+    const weekTasks = weekTasksMap[week.id] ?? [];
 
     for (const col of columns) {
       lines.push("");
       lines.push(`### ${columnLabels[col]}`);
 
-      const colTasks = storyTasks.filter((t) => t.column === col).sort((a, b) => a.order - b.order);
+      const colTasks = weekTasks.filter((t) => t.column === col).sort((a, b) => a.order - b.order);
 
       if (colTasks.length > 0) {
         lines.push("");
