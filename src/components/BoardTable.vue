@@ -3,7 +3,7 @@ import { ref, watch } from "vue";
 import { VueDraggable, type DraggableEvent } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
 import TaskCard from "@/components/TaskCard.vue";
-import { Plus } from "@lucide/vue";
+import { Plus, Check } from "@lucide/vue";
 import type { TaskRecord, StoryRecord } from "@/db/db";
 
 const props = defineProps<{
@@ -16,6 +16,7 @@ const emit = defineEmits<{
   addStory: [title: string];
   storyTitleUpdate: [id: string, title: string];
   storyDelete: [id: string];
+  storyComplete: [id: string];
 }>();
 
 function handleAddWeek() {
@@ -125,23 +126,32 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
         </tr>
       </thead>
 
-      <!-- Story Rows -->
+      <!-- Week Rows -->
       <tbody>
         <tr v-for="story in stories" :key="story.id">
-          <!-- Add Task Button Cell -->
+          <!-- Add Card or Complete Week Button Cell -->
           <td
             class="h-[calc(var(--task-card-height)+8px*2+1px)] border-r border-b border-gray-200 bg-white p-2"
-            @click="emit('addTask', story.id, story.title === 'Categories' ? 'ALL' : 'MON')"
           >
             <button
+              v-if="story.title === 'Categories'"
               class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-              title="Add Task"
+              title="Добавить карточку"
+              @click="emit('addTask', story.id, 'ALL')"
             >
               <Plus class="h-4 w-4" />
             </button>
+            <button
+              v-else
+              class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-green-600"
+              title="Завершить неделю и вернуть карточки"
+              @click="emit('storyComplete', story.id)"
+            >
+              <Check class="h-4 w-4" />
+            </button>
           </td>
 
-          <!-- Task Cells with VueDraggable -->
+          <!-- Card Cells with VueDraggable -->
           <td
             v-for="colInfo in getStoryColumns(story)"
             :key="colInfo.key"
@@ -175,7 +185,7 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
         </tr>
       </tbody>
 
-      <!-- New Story Row -->
+      <!-- New Week Row -->
       <tfoot>
         <tr>
           <td colspan="8" class="border-r border-b border-gray-200 bg-white last:border-r-0">

@@ -44,6 +44,36 @@ export async function deleteStory(id: string): Promise<void> {
   ]);
 }
 
+export async function completeStory(storyId: string, targetStoryId: string): Promise<void> {
+  const db = await getDB();
+  const tx = db.transaction(["stories", "tasks"], "readwrite");
+  const storiesStore = tx.objectStore("stories");
+  const tasksStore = tx.objectStore("tasks");
+
+  // Get all tasks associated with the source story
+  const taskIds = await tasksStore.index("by-story").getAllKeys(storyId);
+
+  // Get target tasks to determine order
+  const targetTasks = await tasksStore.index("by-story").getAll(targetStoryId);
+  let nextOrder = targetTasks.length;
+
+  // Move tasks and update their properties
+  for (const taskId of taskIds) {
+    const task = await tasksStore.get(taskId);
+    if (task) {
+      task.storyId = targetStoryId;
+      task.column = "ALL";
+      task.order = nextOrder++;
+      await tasksStore.put(task);
+    }
+  }
+
+  // Delete the source story
+  await storiesStore.delete(storyId);
+
+  await tx.done;
+}
+
 export async function reorderStories(boardId: string, reorderedIds: string[]): Promise<void> {
   const db = await getDB();
   const tx = db.transaction("stories", "readwrite");

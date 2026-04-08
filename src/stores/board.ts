@@ -122,6 +122,24 @@ export const useBoardStore = defineStore("board", () => {
     tasks.value = tasks.value.filter((t) => t.storyId !== storyId);
   }
 
+  async function completeStory(storyId: string): Promise<void> {
+    const categoriesStory = stories.value.find((s) => s.title === "Categories");
+    if (!categoriesStory) return;
+
+    await storiesApi.completeStory(storyId, categoriesStory.id);
+
+    // Refresh store
+    if (currentBoard.value) {
+      const boardId = currentBoard.value.id;
+      const [storiesList, allTasks] = await Promise.all([
+        storiesApi.getStoriesByBoard(boardId),
+        loadAllTasksForBoard(boardId),
+      ]);
+      stories.value = storiesList;
+      tasks.value = allTasks;
+    }
+  }
+
   async function createTask(
     storyId: string,
     title: string,
@@ -242,6 +260,7 @@ export const useBoardStore = defineStore("board", () => {
     createStory,
     updateStoryTitle,
     deleteStory,
+    completeStory,
     createTask,
     updateTask,
     deleteTask,

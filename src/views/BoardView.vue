@@ -38,6 +38,10 @@ async function handleStoryDelete(id: string) {
   await boardStore.deleteStory(id);
 }
 
+async function handleStoryComplete(id: string) {
+  await boardStore.completeStory(id);
+}
+
 watch(
   () => props.slug,
   async (slug) => {
@@ -65,6 +69,7 @@ watch(
       @add-story="addStory"
       @story-title-update="handleStoryTitleUpdate"
       @story-delete="handleStoryDelete"
+      @story-complete="handleStoryComplete"
     />
   </div>
 
