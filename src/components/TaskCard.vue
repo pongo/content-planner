@@ -34,7 +34,7 @@ function closeEdit() {
 
 <template>
   <div
-    class="group relative flex h-30 w-32 flex-col overflow-hidden rounded-[1px] border-0 border-black/10 shadow-sm transition-shadow select-none"
+    class="group relative flex h-12.5 w-32 flex-col overflow-hidden rounded-[1px] border-0 border-black/10 shadow-sm transition-shadow select-none"
     :style="{ backgroundColor: colors.base }"
     :data-task-id="task.id"
     @mouseenter="isHovered = true"
@@ -44,7 +44,7 @@ function closeEdit() {
     <!-- Top Accent Bar -->
     <div class="h-2.5 w-full" :style="{ backgroundColor: colors.accent }"></div>
 
-    <div class="relative flex flex-1 flex-col justify-between pt-2">
+    <div class="relative flex flex-1 flex-col justify-center">
       <!-- Delete button on hover -->
       <button
         v-show="isHovered"
