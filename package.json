@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "run-p typecheck \"build-only {@}\" --",
+    "deploy": "npm run typecheck && npm run build-only && deploy.bat",
     "preview": "vite preview",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
