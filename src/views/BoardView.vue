@@ -15,13 +15,16 @@ const { isAddingStory, newStoryTitle, startAddStory, addStory, cancelAddStory } 
   useStoryManagement(boardStore);
 
 const addTaskStoryId = ref<string | null>(null);
+const addTaskColumn = ref<TaskRecord["column"] | null>(null);
 
-function openAddTask(storyId: string) {
+function openAddTask(storyId: string, column: TaskRecord["column"]) {
   addTaskStoryId.value = storyId;
+  addTaskColumn.value = column;
 }
 
 function closeAddTask() {
   addTaskStoryId.value = null;
+  addTaskColumn.value = null;
 }
 
 function getTasks(storyId: string, column: TaskRecord["column"]) {
@@ -76,8 +79,9 @@ watch(
 
   <!-- Add Task Dialog -->
   <TaskDialog
-    v-if="addTaskStoryId"
+    v-if="addTaskStoryId && addTaskColumn"
     :story-id="addTaskStoryId"
+    :column="addTaskColumn"
     mode="create"
     @close="closeAddTask"
   />

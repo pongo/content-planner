@@ -6,7 +6,7 @@ import * as storiesApi from "@/db/stories";
 import * as tasksApi from "@/db/tasks";
 import { generateUniqueSlug } from "@/utils/slug";
 
-const COLUMNS: TaskRecord["column"][] = ["TO_DO", "IN_PROGRESS", "VERIFY", "DONE"];
+const COLUMNS: TaskRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 export const useBoardStore = defineStore("board", () => {
   const currentBoard = ref<BoardRecord | null>(null);
@@ -122,17 +122,20 @@ export const useBoardStore = defineStore("board", () => {
     tasks.value = tasks.value.filter((t) => t.storyId !== storyId);
   }
 
-  async function createTask(storyId: string, title: string, assignee: string): Promise<void> {
+  async function createTask(
+    storyId: string,
+    title: string,
+    column: TaskRecord["column"],
+  ): Promise<void> {
     const id = crypto.randomUUID();
     await tasksApi.createTask({
       id,
       storyId,
-      column: "TO_DO",
+      column,
       title,
-      assignee,
     });
     const task = await tasksApi
-      .getTasksByStory(storyId, "TO_DO")
+      .getTasksByStory(storyId, column)
       .then((t) => t.find((x) => x.id === id));
     if (task) tasks.value.push(task);
   }
@@ -141,7 +144,6 @@ export const useBoardStore = defineStore("board", () => {
     taskId: string,
     updates: {
       title?: string;
-      assignee?: string;
       storyId?: string;
       column?: TaskRecord["column"];
       order?: number;
@@ -151,7 +153,6 @@ export const useBoardStore = defineStore("board", () => {
     const task = tasks.value.find((t) => t.id === taskId);
     if (task) {
       if (updates.title !== undefined) task.title = updates.title;
-      if (updates.assignee !== undefined) task.assignee = updates.assignee;
       if (updates.storyId !== undefined) task.storyId = updates.storyId;
       if (updates.column !== undefined) task.column = updates.column;
       if (updates.order !== undefined) task.order = updates.order;
@@ -161,11 +162,6 @@ export const useBoardStore = defineStore("board", () => {
   async function deleteTask(taskId: string): Promise<void> {
     await tasksApi.deleteTask(taskId);
     tasks.value = tasks.value.filter((t) => t.id !== taskId);
-  }
-
-  async function deleteAllDoneTasks(): Promise<void> {
-    await tasksApi.deleteAllDoneTasks();
-    tasks.value = tasks.value.filter((t) => t.column !== "DONE");
   }
 
   async function moveTask(
@@ -190,10 +186,6 @@ export const useBoardStore = defineStore("board", () => {
     }
   }
 
-  /**
-   * Atomically save all tasks in a cell.
-   * Used by VueDraggable @change handler.
-   */
   async function saveCell(
     storyId: string,
     column: TaskRecord["column"],
@@ -208,10 +200,6 @@ export const useBoardStore = defineStore("board", () => {
     }
   }
 
-  /**
-   * Atomically save both cells in a single transaction.
-   * Used for cross-cell moves.
-   */
   async function saveBothCells(
     sourceStoryId: string,
     sourceColumn: TaskRecord["column"],
@@ -257,7 +245,6 @@ export const useBoardStore = defineStore("board", () => {
     createTask,
     updateTask,
     deleteTask,
-    deleteAllDoneTasks,
     moveTask,
     saveCell,
     saveBothCells,

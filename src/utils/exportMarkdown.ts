@@ -2,14 +2,17 @@ import type { BoardRecord, TaskRecord } from "@/db/db";
 import * as storiesApi from "@/db/stories";
 import * as tasksApi from "@/db/tasks";
 
-const columnLabels: Record<TaskRecord["column"], string> = {
-  TO_DO: "To Do",
-  IN_PROGRESS: "In Progress",
-  VERIFY: "Verify",
-  DONE: "Done",
+const columnLabels: Record<string, string> = {
+  MON: "ПН",
+  TUE: "ВТ",
+  WED: "СР",
+  THU: "ЧТ",
+  FRI: "ПТ",
+  SAT: "СБ",
+  SUN: "ВС",
 };
 
-const columns: TaskRecord["column"][] = ["TO_DO", "IN_PROGRESS", "VERIFY", "DONE"];
+const columns: TaskRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 export async function exportBoardToMarkdown(board: BoardRecord): Promise<string> {
   const stories = await storiesApi.getStoriesByBoard(board.id);
@@ -43,9 +46,8 @@ export async function exportBoardToMarkdown(board: BoardRecord): Promise<string>
       }
 
       for (const task of colTasks) {
-        const assignee = task.assignee ? ` @${task.assignee}` : "";
-        const label = col === "DONE" ? "[x]" : "[ ]";
-        lines.push(`- ${label}${assignee} ${task.title}`);
+        const label = "[ ]";
+        lines.push(`- ${label} ${task.title}`);
       }
     }
   }

@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import { useBoardStore } from "@/stores/board";
 import { generatePastelColor } from "@/utils/pastelColor";
 import TaskDialog from "@/components/TaskDialog.vue";
-import { User, X } from "@lucide/vue";
+import { X } from "@lucide/vue";
 import type { TaskRecord } from "@/db/db";
 
 const props = defineProps<{ task: TaskRecord }>();
@@ -13,11 +13,8 @@ const isEditing = ref(false);
 const isHovered = ref(false);
 
 const colors = computed(() => {
-  if (props.task.assignee) {
-    const base = generatePastelColor(props.task.assignee);
-    return { base, accent: `color-mix(in srgb, ${base}, black 15%)` };
-  }
-  return { base: "#fff", accent: "#f2f6ff" };
+  const base = generatePastelColor(props.task.title);
+  return { base, accent: `color-mix(in srgb, ${base}, black 15%)` };
 });
 
 function handleDelete() {
@@ -65,15 +62,6 @@ function closeEdit() {
       >
         {{ task.title }}
       </p>
-
-      <!-- Assignee -->
-      <div
-        v-if="task.assignee"
-        class="absolute bottom-0.5 left-0.5 flex items-center gap-0.5 self-start text-xs text-gray-600"
-      >
-        <User class="h-2.5 w-2.5" />
-        <span class="truncate">{{ task.assignee }}</span>
-      </div>
     </div>
 
     <!-- Edit Dialog -->

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useBoardStore } from "@/stores/board";
 import { generatePastelColor } from "@/utils/pastelColor";
 import { Check, X } from "@lucide/vue";
@@ -7,6 +7,7 @@ import type { TaskRecord } from "@/db/db";
 
 const props = defineProps<{
   storyId: string;
+  column?: TaskRecord["column"];
   mode: "create" | "edit";
   task?: TaskRecord;
 }>();
@@ -16,14 +17,8 @@ const emit = defineEmits<{ close: [] }>();
 const boardStore = useBoardStore();
 
 const title = ref(props.mode === "edit" && props.task ? props.task.title : "");
-const assignee = ref(props.mode === "edit" && props.task ? props.task.assignee : "");
 const isSaving = ref(false);
 const overlayMousedown = ref(false);
-
-const assigneeSuggestions = computed(() => {
-  const assignees = boardStore.tasks.map((t) => t.assignee).filter((a) => a.trim() !== "");
-  return [...new Set(assignees)].sort();
-});
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 
@@ -32,8 +27,6 @@ function handleOverlayMousedown() {
 }
 
 function handleOverlayClick() {
-  // Only close if the mousedown also happened on the overlay
-  // (prevents closing when selecting text inside and releasing outside)
   if (!overlayMousedown.value) return;
   overlayMousedown.value = false;
   handleCancel();
@@ -50,11 +43,11 @@ async function handleSave() {
   isSaving.value = true;
   try {
     if (props.mode === "create") {
-      await boardStore.createTask(props.storyId, trimmed, assignee.value.trim());
+      if (!props.column) throw new Error("Column is required for creation");
+      await boardStore.createTask(props.storyId, trimmed, props.column);
     } else if (props.task) {
       await boardStore.updateTask(props.task.id, {
         title: trimmed,
-        assignee: assignee.value.trim(),
       });
     }
     emit("close");
@@ -89,7 +82,7 @@ function handleKeydown(e: KeyboardEvent) {
     >
       <div
         class="w-full max-w-sm rounded border-2 border-gray-800 bg-white p-0 shadow-xl transition-colors"
-        :style="assignee.trim() ? { backgroundColor: generatePastelColor(assignee) } : {}"
+        :style="title.trim() ? { backgroundColor: generatePastelColor(title) } : {}"
         @click.stop
         @mousedown.stop
       >
@@ -103,22 +96,6 @@ function handleKeydown(e: KeyboardEvent) {
             placeholder=""
             class="field-sizing-content max-h-[80vh] w-full resize-none overflow-auto border-none bg-transparent text-center text-lg font-medium text-gray-800 outline-none"
           />
-        </div>
-
-        <!-- Assignee Input -->
-        <div class="border-t border-gray-200/60 px-3 py-2">
-          <input
-            v-model="assignee"
-            type="text"
-            list="assignee-suggestions"
-            placeholder="UNASSIGNED"
-            @keydown="handleKeydown"
-            @keyup.enter.prevent="handleSave"
-            class="w-full rounded-sm border border-gray-300/60 bg-white/80 px-2 py-1 text-sm text-gray-600 outline-none focus:border-blue-500"
-          />
-          <datalist id="assignee-suggestions">
-            <option v-for="name in assigneeSuggestions" :key="name" :value="name" />
-          </datalist>
         </div>
 
         <!-- Actions -->
