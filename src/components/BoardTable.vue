@@ -107,7 +107,7 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
 
 <template>
   <div class="flex-1 overflow-auto">
-    <table class="w-full" style="border-collapse: separate; border-spacing: 0">
+    <table class="w-full table-fixed" style="border-collapse: separate; border-spacing: 0">
       <colgroup>
         <col class="w-10" />
         <col v-for="col in columns" :key="col" class="min-w-40" />
@@ -129,7 +129,7 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
 
       <!-- Week Rows -->
       <tbody>
-        <tr v-for="week in weeks" :key="week.id">
+        <tr v-for="week in weeks" :key="week.id" class="week">
           <!-- Add Card or Complete Week Button Cell -->
           <td
             class="h-[calc(var(--task-card-height)+8px*2+1px)] border-r border-b border-gray-200 bg-white p-2"
@@ -238,5 +238,15 @@ tfoot td {
 
 .sortable-fallback {
   @apply opacity-80;
+}
+
+/* firefox */
+@-moz-document url-prefix() {
+  tr.week {
+    height: 1px;
+  }
+  tr.week > td[data-column] {
+    height: 100% !important;
+  }
 }
 </style>
