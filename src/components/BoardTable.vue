@@ -260,7 +260,7 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
       <!-- New Story Row -->
       <tfoot>
         <tr>
-          <td class="border-r border-b border-gray-200 bg-white">
+          <td colspan="9" class="border-r border-b border-gray-200 bg-white last:border-r-0">
             <StoryForm
               v-if="isAddingStory"
               :initial-title="newStoryTitle"
@@ -270,17 +270,11 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
             <button
               v-else
               @click="emit('startAddStory')"
-              class="skip-ink-none flex w-full items-center justify-center py-4 text-sm text-gray-400 underline hover:text-gray-600"
+              class="skip-ink-none flex w-full items-center justify-center py-3 text-sm text-gray-400 hover:underline"
             >
-              New Story
+              Добавить неделю
             </button>
           </td>
-          <td class="border-r border-b border-gray-200 bg-white" />
-          <td
-            v-for="col in columns"
-            :key="col"
-            class="border-r border-b border-gray-200 bg-gray-50 last:border-r-0"
-          />
         </tr>
       </tfoot>
     </table>
