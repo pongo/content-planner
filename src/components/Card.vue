@@ -37,7 +37,7 @@ function closeEdit() {
 
 <template>
   <div
-    class="group relative flex w-32 flex-col overflow-hidden rounded-[1px] border-0 border-black/10 shadow-sm transition-shadow select-none"
+    class="group relative flex w-30 flex-col overflow-hidden rounded-[1px] border-0 border-black/10 shadow-sm transition-shadow select-none"
     :style="{ backgroundColor: colors.base, height: 'var(--task-card-height)' }"
     :data-task-id="task.id"
     @mouseenter="isHovered = true"
