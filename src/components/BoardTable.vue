@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { VueDraggable, type DraggableEvent } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
 import Card from "@/components/Card.vue";
@@ -75,6 +75,8 @@ function getWeekColumns(week: WeekRecord): { key: TaskRecord["column"]; colspan?
 // Each cell gets its own mutable array that vue-draggable can reorder
 const cellLists = ref<Record<string, TaskRecord[]>>({});
 const boardStore = useBoardStore();
+
+const isBoardEmpty = computed(() => boardStore.tasks.length === 0);
 
 // Sync cellLists with store data — mutate in-place to keep VueDraggable's reference
 function syncCellLists() {
@@ -179,6 +181,12 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
                   :task="task"
                 />
               </VueDraggable>
+              <div
+                v-if="isBoardEmpty && week.title === 'Categories'"
+                class="absolute inset-0 flex items-center pl-2 text-sm text-gray-400 select-none"
+              >
+                ← Добавьте карточку
+              </div>
             </div>
           </td>
         </tr>
