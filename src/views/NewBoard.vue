@@ -55,7 +55,7 @@ function handleKeydown(e: KeyboardEvent) {
         <button
           @click="handleCreate"
           :disabled="isCreating || !title.trim()"
-          class="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          class="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {{ isCreating ? "Creating..." : "Create" }}
         </button>

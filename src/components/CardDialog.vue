@@ -94,7 +94,7 @@ function handleKeydown(e: KeyboardEvent) {
             @keydown="handleKeydown"
             rows="3"
             placeholder=""
-            class="field-sizing-content max-h-[80vh] w-full resize-none overflow-auto border-none bg-transparent text-center text-lg font-medium text-gray-800 outline-none"
+            class="field-sizing-content max-h-[80vh] w-full resize-none overflow-auto border-none bg-transparent text-center text-lg font-semibold text-gray-800 outline-none"
           />
         </div>
 
@@ -103,14 +103,14 @@ function handleKeydown(e: KeyboardEvent) {
           <button
             @click="handleSave"
             :disabled="isSaving || !title.trim()"
-            class="flex flex-1 items-center justify-center gap-1 bg-green-600 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+            class="flex flex-1 items-center justify-center gap-1 bg-green-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Check class="h-4 w-4" />
             <span>{{ mode === "create" ? "Create" : "Save" }}</span>
           </button>
           <button
             @click="handleCancel"
-            class="flex flex-1 items-center justify-center gap-1 bg-gray-400 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-500"
+            class="flex flex-1 items-center justify-center gap-1 bg-gray-400 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-500"
           >
             <X class="h-4 w-4" />
             <span>Cancel</span>

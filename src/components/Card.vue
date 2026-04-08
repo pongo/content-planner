@@ -57,7 +57,7 @@ function closeEdit() {
 
       <!-- Task Title -->
       <p
-        class="line-clamp-3 w-full text-center text-xs leading-tight font-medium wrap-break-word whitespace-pre-wrap text-gray-800"
+        class="line-clamp-3 w-full text-center text-xs leading-tight font-semibold wrap-break-word whitespace-pre-wrap text-gray-800"
       >
         {{ task.title }}
       </p>

@@ -85,7 +85,8 @@ async function deleteBoard(board: BoardRecord) {
               <div
                 class="group flex items-center gap-2 px-4 py-2 transition-colors hover:bg-gray-50"
                 :class="{
-                  'bg-blue-50 font-medium text-blue-700': boardStore.currentBoard?.id === board.id,
+                  'bg-blue-50 font-semibold text-blue-700':
+                    boardStore.currentBoard?.id === board.id,
                 }"
               >
                 <RouterLink
