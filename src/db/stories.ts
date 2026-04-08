@@ -73,17 +73,3 @@ export async function completeStory(storyId: string, targetStoryId: string): Pro
 
   await tx.done;
 }
-
-export async function reorderStories(boardId: string, reorderedIds: string[]): Promise<void> {
-  const db = await getDB();
-  const tx = db.transaction("stories", "readwrite");
-  const store = tx.objectStore("stories");
-  for (let i = 0; i < reorderedIds.length; i++) {
-    const story = await store.get(reorderedIds[i]!);
-    if (story && story.boardId === boardId) {
-      story.order = i;
-      await store.put(story);
-    }
-  }
-  await tx.done;
-}
