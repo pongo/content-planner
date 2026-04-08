@@ -130,7 +130,7 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
         <tr v-for="story in stories" :key="story.id">
           <!-- Add Task Button Cell -->
           <td
-            class="border-r border-b border-gray-200 bg-white p-2"
+            class="h-[calc(var(--task-card-height)+8px*2+1px)] border-r border-b border-gray-200 bg-white p-2"
             @click="emit('addTask', story.id, story.title === 'Categories' ? 'ALL' : 'MON')"
           >
             <button
