@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+.skip-ink-none {
+  text-decoration-skip-ink: none;
+}

@@ -1,0 +1,61 @@
+{
+  "name": "content-planner",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "run-p typecheck \"build-only {@}\" --",
+    "preview": "vite preview",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "build-only": "vite build",
+    "typecheck": "vue-tsc --build",
+    "lint": "run-s lint:*",
+    "lint:oxlint": "oxlint . --fix",
+    "lint:eslint": "eslint . --fix --cache",
+    "format": "oxfmt src/",
+    "agent:lint": "oxlint -f unix . --fix && eslint --no-color . --fix --cache",
+    "agent:test": "vitest run --no-color --reporter=agent"
+  },
+  "dependencies": {
+    "@lucide/vue": "^1.7.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "color-hash": "^2.0.2",
+    "idb": "^8.0.3",
+    "pinia": "^3.0.4",
+    "slugify": "^1.6.9",
+    "tailwindcss": "^4.2.2",
+    "vue": "^3.5.32",
+    "vue-draggable-plus": "^0.6.1",
+    "vue-router": "^5.0.4"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "^24.0.4",
+    "@types/color-hash": "^2.0.0",
+    "@types/jsdom": "^28.0.1",
+    "@types/node": "^25.5.2",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "@vitest/eslint-plugin": "^1.6.14",
+    "@vue/eslint-config-typescript": "^14.7.0",
+    "@vue/test-utils": "^2.4.6",
+    "@vue/tsconfig": "^0.9.1",
+    "eslint": "^10.2.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-oxlint": "~1.57.0",
+    "eslint-plugin-vue": "~10.8.0",
+    "jiti": "^2.6.1",
+    "jsdom": "^29.0.2",
+    "npm-run-all2": "^8.0.4",
+    "oxfmt": "^0.44.0",
+    "oxlint": "~1.59.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.3",
+    "vite-plugin-vue-devtools": "^8.1.1",
+    "vitest": "^4.1.2",
+    "vue-tsc": "^3.2.6"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}
