@@ -133,11 +133,6 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
           <!-- Add Card or Complete Week Button Cell -->
           <td
             class="h-[calc(var(--task-card-height)+8px*2+1px)] border-r border-b border-gray-200 bg-white"
-            _click="
-              week.title === 'Categories'
-                ? emit('addTask', week.id, 'ALL')
-                : emit('weekComplete', week.id)
-            "
           >
             <button
               v-if="week.title === 'Categories'"
