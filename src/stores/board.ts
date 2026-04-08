@@ -19,7 +19,7 @@ export const useBoardStore = defineStore("board", () => {
   function getTasksForWeek(weekId: string, column: TaskRecord["column"]) {
     return tasks.value
       .filter((t) => t.weekId === weekId && t.column === column)
-      .sort((a, b) => a.order - b.order);
+      .toSorted((a, b) => a.title.localeCompare(b.title));
   }
 
   async function loadBoard(slug: string) {

@@ -11,7 +11,7 @@ export async function getTasksByWeek(weekId: string, column?: TaskColumn): Promi
   } else {
     result = await db.getAllFromIndex("tasks", "by-week", weekId);
   }
-  return result.sort((a, b) => a.order - b.order);
+  return result.toSorted((a, b) => a.title.localeCompare(b.title));
 }
 
 export async function createTask(task: Omit<TaskRecord, "order">): Promise<string> {
