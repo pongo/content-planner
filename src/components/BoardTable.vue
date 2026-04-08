@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { VueDraggable } from "vue-draggable-plus";
+import { VueDraggable, type DraggableEvent } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
 import TaskCard from "@/components/TaskCard.vue";
 import { Plus } from "@lucide/vue";
@@ -38,6 +38,40 @@ function cellKey(storyId: string, column: TaskRecord["column"]) {
   return `${storyId}:${column}`;
 }
 
+async function handleDragEnd(e: DraggableEvent, storyId: string, column: TaskRecord["column"]) {
+  const sourceKey = cellKey(storyId, column);
+  const sourceTasks = cellLists.value[sourceKey] ?? [];
+
+  const targetTd = e.to.closest("td[data-story-id]") as HTMLTableCellElement | null;
+  const targetStoryId = targetTd?.dataset.storyId;
+  const targetCol = targetTd?.dataset.column as TaskRecord["column"] | undefined;
+
+  if (!targetStoryId || !targetCol) return;
+
+  const targetKey = cellKey(targetStoryId, targetCol);
+
+  if (e.to === e.from) {
+    await boardStore.saveCell(storyId, column, sourceTasks);
+  } else {
+    const targetTasks = cellLists.value[targetKey] ?? [];
+    await boardStore.saveBothCells(
+      storyId,
+      column,
+      sourceTasks,
+      targetStoryId,
+      targetCol,
+      targetTasks,
+    );
+  }
+}
+
+function getStoryColumns(story: StoryRecord): { key: TaskRecord["column"]; colspan?: number }[] {
+  if (story.title === "Categories") {
+    return [{ key: "ALL", colspan: 7 }];
+  }
+  return columns.map((col) => ({ key: col }));
+}
+
 // Each cell gets its own mutable array that vue-draggable can reorder
 const cellLists = ref<Record<string, TaskRecord[]>>({});
 const boardStore = useBoardStore();
@@ -45,8 +79,9 @@ const boardStore = useBoardStore();
 // Sync cellLists with store data — mutate in-place to keep VueDraggable's reference
 function syncCellLists() {
   for (const story of props.stories) {
-    const colsToSync = story.title === "Categories" ? ["ALL" as const] : columns;
-    for (const col of colsToSync) {
+    const colsToSync = getStoryColumns(story);
+    for (const colInfo of colsToSync) {
+      const col = colInfo.key;
       const key = cellKey(story.id, col);
       const newTasks = [...props.getTasks(story.id, col)];
       if (!cellLists.value[key]) {
@@ -93,149 +128,50 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
       <!-- Story Rows -->
       <tbody>
         <tr v-for="story in stories" :key="story.id">
-          <template v-if="story.title === 'Categories'">
-            <!-- Add Task Button Cell -->
-            <td
-              class="border-r border-b border-gray-200 bg-white p-2"
-              @click="emit('addTask', story.id, 'ALL')"
+          <!-- Add Task Button Cell -->
+          <td
+            class="border-r border-b border-gray-200 bg-white p-2"
+            @click="emit('addTask', story.id, story.title === 'Categories' ? 'ALL' : 'MON')"
+          >
+            <button
+              class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              title="Add Task"
             >
-              <button
-                class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-                title="Add Task"
+              <Plus class="h-4 w-4" />
+            </button>
+          </td>
+
+          <!-- Task Cells with VueDraggable -->
+          <td
+            v-for="colInfo in getStoryColumns(story)"
+            :key="colInfo.key"
+            :colspan="colInfo.colspan"
+            class="relative border-r border-b border-gray-200 bg-gray-50 p-2 align-top last:border-r-0"
+            :data-story-id="story.id"
+            :data-column="colInfo.key"
+            style="height: 1px"
+          >
+            <div class="flex h-full flex-col">
+              <VueDraggable
+                :key="cellKey(story.id, colInfo.key)"
+                v-model="cellLists[cellKey(story.id, colInfo.key)]!"
+                :group="{ name: 'tasks', pull: true, put: true }"
+                class="flex flex-1 flex-wrap content-start items-start gap-2"
+                :animation="150"
+                ghost-class="sortable-ghost"
+                chosen-class="sortable-chosen"
+                fallback-class="sortable-fallback"
+                :fallback-tolerance="3"
+                @end="(e: any) => handleDragEnd(e, story.id, colInfo.key)"
               >
-                <Plus class="h-4 w-4" />
-              </button>
-            </td>
-            <!-- Task Cells with VueDraggable (colspan for Categories) -->
-            <td
-              colspan="7"
-              class="relative border-r border-b border-gray-200 bg-gray-50 p-2 align-top last:border-r-0"
-              :data-story-id="story.id"
-              data-column="ALL"
-              style="height: 1px"
-            >
-              <div class="flex h-full flex-col">
-                <VueDraggable
-                  :key="cellKey(story.id, 'ALL')"
-                  v-model="cellLists[cellKey(story.id, 'ALL')]!"
-                  :group="{ name: 'tasks', pull: true, put: true }"
-                  class="flex flex-1 flex-wrap content-start items-start gap-2"
-                  :animation="150"
-                  ghost-class="sortable-ghost"
-                  chosen-class="sortable-chosen"
-                  fallback-class="sortable-fallback"
-                  :fallback-tolerance="3"
-                  @end="
-                    async (e: any) => {
-                      const sourceKey = cellKey(story.id, 'ALL');
-                      const sourceTasks = cellLists[sourceKey] ?? [];
-
-                      const targetTd = e.to.closest('td[data-story-id]');
-                      const targetStoryId = targetTd?.dataset.storyId;
-                      const targetCol = targetTd?.dataset.column;
-
-                      if (!targetStoryId || !targetCol) return;
-
-                      const targetKey = cellKey(targetStoryId, targetCol);
-
-                      if (e.to === e.from) {
-                        await boardStore.saveCell(story.id, 'ALL', sourceTasks);
-                      } else {
-                        const targetTasks = cellLists[targetKey] ?? [];
-                        await boardStore.saveBothCells(
-                          story.id,
-                          'ALL',
-                          sourceTasks,
-                          targetStoryId,
-                          targetCol,
-                          targetTasks,
-                        );
-                      }
-                    }
-                  "
-                >
-                  <TaskCard
-                    v-for="task in cellLists[cellKey(story.id, 'ALL')]"
-                    :key="task.id"
-                    :task="task"
-                  />
-                </VueDraggable>
-              </div>
-            </td>
-          </template>
-
-          <template v-else>
-            <!-- Add Task Button Cell -->
-            <td
-              class="border-r border-b border-gray-200 bg-white p-2"
-              @click="emit('addTask', story.id, 'MON')"
-            >
-              <button
-                class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-                title="Add Task"
-              >
-                <Plus class="h-4 w-4" />
-              </button>
-            </td>
-
-            <!-- Task Cells with VueDraggable -->
-            <td
-              v-for="col in columns"
-              :key="col"
-              class="relative border-r border-b border-gray-200 bg-gray-50 p-2 align-top last:border-r-0"
-              :data-story-id="story.id"
-              :data-column="col"
-              style="height: 1px"
-            >
-              <div class="flex h-full flex-col">
-                <VueDraggable
-                  :key="cellKey(story.id, col)"
-                  v-model="cellLists[cellKey(story.id, col)]!"
-                  :group="{ name: 'tasks', pull: true, put: true }"
-                  class="flex flex-1 flex-wrap content-start items-start gap-2"
-                  :animation="150"
-                  ghost-class="sortable-ghost"
-                  chosen-class="sortable-chosen"
-                  fallback-class="sortable-fallback"
-                  :fallback-tolerance="3"
-                  @end="
-                    async (e: any) => {
-                      const sourceKey = cellKey(story.id, col);
-                      const sourceTasks = cellLists[sourceKey] ?? [];
-
-                      const targetTd = e.to.closest('td[data-story-id]');
-                      const targetStoryId = targetTd?.dataset.storyId;
-                      const targetCol = targetTd?.dataset.column;
-
-                      if (!targetStoryId || !targetCol) return;
-
-                      const targetKey = cellKey(targetStoryId, targetCol);
-
-                      if (e.to === e.from) {
-                        await boardStore.saveCell(story.id, col, sourceTasks);
-                      } else {
-                        const targetTasks = cellLists[targetKey] ?? [];
-                        await boardStore.saveBothCells(
-                          story.id,
-                          col,
-                          sourceTasks,
-                          targetStoryId,
-                          targetCol,
-                          targetTasks,
-                        );
-                      }
-                    }
-                  "
-                >
-                  <TaskCard
-                    v-for="task in cellLists[cellKey(story.id, col)]"
-                    :key="task.id"
-                    :task="task"
-                  />
-                </VueDraggable>
-              </div>
-            </td>
-          </template>
+                <TaskCard
+                  v-for="task in cellLists[cellKey(story.id, colInfo.key)]"
+                  :key="task.id"
+                  :task="task"
+                />
+              </VueDraggable>
+            </div>
+          </td>
         </tr>
       </tbody>
 
