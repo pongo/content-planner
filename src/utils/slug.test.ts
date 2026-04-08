@@ -1,7 +1,16 @@
 import { describe, it, expect } from "vitest";
 import { generateUniqueSlug } from "./slug";
 
-describe("generateUniqueSlug", () => {
+describe("generateUniqueSlug()", () => {
+  it("sluggify", () => {
+    expect(generateUniqueSlug("author_reads", new Set())).toBe("author_reads");
+    expect(generateUniqueSlug("@author.reads", new Set())).toBe("@author.reads");
+    expect(generateUniqueSlug("Автор читает", new Set())).toBe("avtor-chitaet");
+    expect(generateUniqueSlug("author/reads", new Set())).toBe("authorreads");
+  });
+});
+
+describe("generateUniqueSlug: collisions", () => {
   it("generates a basic slug", () => {
     expect(generateUniqueSlug("My Board", new Set())).toBe("my-board");
   });

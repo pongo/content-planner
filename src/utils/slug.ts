@@ -12,7 +12,8 @@ const RESERVED_SLUGS = new Set(["new"]);
  * "new" -> "new-2"
  */
 export function generateUniqueSlug(title: string, existingSlugs: ReadonlySet<string>): string {
-  const baseSlug = slugify(title, { lower: true, strict: true }) || "board";
+  const baseSlug =
+    slugify(title, { lower: true, strict: false, remove: /[*+~()'"!:/\\]/g }) || "board";
 
   if (!existingSlugs.has(baseSlug) && !RESERVED_SLUGS.has(baseSlug)) {
     return baseSlug;
