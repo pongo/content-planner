@@ -2,7 +2,6 @@
 import { ref, watch } from "vue";
 import { VueDraggable } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
-import StoryCard from "@/components/StoryCard.vue";
 import TaskCard from "@/components/TaskCard.vue";
 import { Plus } from "@lucide/vue";
 import type { TaskRecord, StoryRecord } from "@/db/db";
@@ -73,7 +72,6 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
   <div class="flex-1 overflow-auto">
     <table class="w-full" style="border-collapse: separate; border-spacing: 0">
       <colgroup>
-        <col class="w-50" />
         <col class="w-10" />
         <col v-for="col in columns" :key="col" class="min-w-40" />
       </colgroup>
@@ -81,9 +79,6 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
       <!-- Header -->
       <thead>
         <tr class="bg-white">
-          <th
-            class="border-r border-b border-gray-200 bg-white px-3 py-3 text-center text-sm font-semibold tracking-wide text-gray-400 uppercase"
-          ></th>
           <th class="border-r border-b border-gray-200 bg-white" />
           <th
             v-for="col in columns"
@@ -98,17 +93,6 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
       <!-- Story Rows -->
       <tbody>
         <tr v-for="story in stories" :key="story.id">
-          <!-- Story Cell -->
-          <td class="border-r border-b border-gray-200 bg-white p-0 align-top" style="height: 1px">
-            <div class="h-full">
-              <StoryCard
-                :story="story"
-                @title-update="(id, title) => emit('storyTitleUpdate', id, title)"
-                @delete="(id) => emit('storyDelete', id)"
-              />
-            </div>
-          </td>
-
           <template v-if="story.title === 'Categories'">
             <!-- Add Task Button Cell -->
             <td
@@ -258,7 +242,7 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
       <!-- New Story Row -->
       <tfoot>
         <tr>
-          <td colspan="9" class="border-r border-b border-gray-200 bg-white last:border-r-0">
+          <td colspan="8" class="border-r border-b border-gray-200 bg-white last:border-r-0">
             <button
               @click="handleAddWeek"
               class="skip-ink-none flex w-full items-center justify-center py-3 text-sm text-gray-400 hover:underline"
