@@ -3,27 +3,25 @@ import { ref, watch } from "vue";
 import { VueDraggable } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
 import StoryCard from "@/components/StoryCard.vue";
-import StoryForm from "@/components/StoryForm.vue";
 import TaskCard from "@/components/TaskCard.vue";
 import { Plus } from "@lucide/vue";
 import type { TaskRecord, StoryRecord } from "@/db/db";
 
 const props = defineProps<{
   stories: StoryRecord[];
-  isAddingStory: boolean;
   getTasks: (storyId: string, column: TaskRecord["column"]) => TaskRecord[];
 }>();
 
 const emit = defineEmits<{
   addTask: [storyId: string, column: TaskRecord["column"]];
-  startAddStory: [];
   addStory: [title: string];
-  cancelAddStory: [];
   storyTitleUpdate: [id: string, title: string];
   storyDelete: [id: string];
 }>();
 
-const newStoryTitle = defineModel<string>("newStoryTitle", { default: "" });
+function handleAddWeek() {
+  emit("addStory", new Date().toISOString());
+}
 
 const columnLabels: Record<string, string> = {
   MON: "ПН",
@@ -261,15 +259,8 @@ watch([() => props.stories, () => boardStore.tasks], () => syncCellLists(), {
       <tfoot>
         <tr>
           <td colspan="9" class="border-r border-b border-gray-200 bg-white last:border-r-0">
-            <StoryForm
-              v-if="isAddingStory"
-              :initial-title="newStoryTitle"
-              @submit="(title) => emit('addStory', title)"
-              @cancel="emit('cancelAddStory')"
-            />
             <button
-              v-else
-              @click="emit('startAddStory')"
+              @click="handleAddWeek"
               class="skip-ink-none flex w-full items-center justify-center py-3 text-sm text-gray-400 hover:underline"
             >
               Добавить неделю

@@ -11,8 +11,7 @@ const props = defineProps<{ slug: string }>();
 
 const boardStore = useBoardStore();
 
-const { isAddingStory, newStoryTitle, startAddStory, addStory, cancelAddStory } =
-  useStoryManagement(boardStore);
+const { addStory } = useStoryManagement(boardStore);
 
 const addTaskStoryId = ref<string | null>(null);
 const addTaskColumn = ref<TaskRecord["column"] | null>(null);
@@ -60,14 +59,10 @@ watch(
 
     <!-- Board Table -->
     <BoardTable
-      v-model:new-story-title="newStoryTitle"
       :stories="boardStore.stories"
-      :is-adding-story="isAddingStory"
       :get-tasks="getTasks"
       @add-task="openAddTask"
-      @start-add-story="startAddStory"
       @add-story="addStory"
-      @cancel-add-story="cancelAddStory"
       @story-title-update="handleStoryTitleUpdate"
       @story-delete="handleStoryDelete"
     />
