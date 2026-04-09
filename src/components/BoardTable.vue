@@ -167,6 +167,7 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
             style="height: 1px"
           >
             <div class="flex h-full flex-col">
+              <!-- vue-draggable-plus -->
               <VueDraggable
                 :key="cellKey(week.id, colInfo.key)"
                 v-model="cellLists[cellKey(week.id, colInfo.key)]!"
