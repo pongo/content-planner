@@ -174,6 +174,7 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
                 :group="{ name: 'tasks', pull: true, put: true }"
                 class="flex flex-1 flex-wrap content-start items-start gap-2"
                 :animation="150"
+                :sort="false"
                 ghost-class="sortable-ghost"
                 chosen-class="sortable-chosen"
                 fallback-class="sortable-fallback"
