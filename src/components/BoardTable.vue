@@ -38,7 +38,24 @@ function cellKey(weekId: string, column: TaskRecord["column"]) {
   return `${weekId}:${column}`;
 }
 
+const dragOverKey = ref<string | null>(null);
+
+function handleCellEnter(weekId: string, col: TaskRecord["column"]) {
+  dragOverKey.value = cellKey(weekId, col);
+}
+
+function handleCellLeave(weekId: string, col: TaskRecord["column"], e: DragEvent) {
+  const td = e.currentTarget as HTMLElement;
+  const related = e.relatedTarget as Node | null;
+  if (!related || !td.contains(related)) {
+    if (dragOverKey.value === cellKey(weekId, col)) {
+      dragOverKey.value = null;
+    }
+  }
+}
+
 async function handleDragEnd(e: DraggableEvent, weekId: string, column: TaskRecord["column"]) {
+  dragOverKey.value = null;
   const sourceKey = cellKey(weekId, column);
   const sourceTasks = cellLists.value[sourceKey] ?? [];
 
@@ -162,9 +179,12 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
             :key="colInfo.key"
             :colspan="colInfo.colspan"
             class="relative border-r border-b border-gray-200 bg-gray-50 p-2 align-top last:border-r-0"
+            :class="{ 'sortable-dragover': dragOverKey === cellKey(week.id, colInfo.key) }"
             :data-week-id="week.id"
             :data-column="colInfo.key"
             style="height: 1px"
+            @dragenter="handleCellEnter(week.id, colInfo.key)"
+            @dragleave="handleCellLeave(week.id, colInfo.key, $event)"
           >
             <div class="flex h-full flex-col">
               <!-- vue-draggable-plus -->
@@ -231,19 +251,11 @@ tfoot td {
 }
 
 .sortable-ghost {
-  @apply opacity-40 outline-2 outline-blue-400/50 outline-dashed;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 6px,
-    rgba(59, 130, 246, 0.15) 6px,
-    rgba(59, 130, 246, 0.15) 12px
-  ) !important;
-  box-shadow: none !important;
+  @apply opacity-0!;
 }
 
-.sortable-fallback {
-  @apply opacity-80;
+.sortable-dragover {
+  @apply bg-blue-100/60!;
 }
 
 /* firefox */
