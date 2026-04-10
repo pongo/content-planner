@@ -1,4 +1,5 @@
 import ColorHash from "color-hash";
+import { firstLine } from "./card-title.ts";
 
 const colorHash = new ColorHash({ saturation: 0.7, lightness: 0.9 });
 
@@ -7,5 +8,5 @@ const colorHash = new ColorHash({ saturation: 0.7, lightness: 0.9 });
  */
 export function generatePastelColor(text: string): string {
   if (!text.trim()) return "#fff";
-  return colorHash.hex(text);
+  return colorHash.hex(firstLine(text));
 }
