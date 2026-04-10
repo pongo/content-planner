@@ -7,18 +7,15 @@ export function firstLine(text: string): string {
 
 export function parseTitle(title: string) {
   const index = title.search(reEOL);
-
-  if (index === -1) {
-    return {
-      firstLine: title,
-      remainingLines: "",
-      isMultiline: false,
-    };
-  }
-
-  return {
-    firstLine: title.slice(0, index),
-    remainingLines: title.slice(index + 1).trim(),
-    isMultiline: true,
-  };
+  return index === -1
+    ? {
+        firstLine: title,
+        remainingLines: "",
+        isMultiline: false,
+      }
+    : {
+        firstLine: title.slice(0, index),
+        remainingLines: title.slice(index + 1).trim(),
+        isMultiline: true,
+      };
 }
