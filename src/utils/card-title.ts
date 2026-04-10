@@ -1,10 +1,12 @@
+const reEOL = /\r?\n/;
+
 export function firstLine(text: string): string {
-  const i = text.search(/\r?\n/);
+  const i = text.search(reEOL);
   return i === -1 ? text : text.slice(0, i);
 }
 
 export function parseTitle(title: string) {
-  const index = title.indexOf("\n");
+  const index = title.search(reEOL);
 
   if (index === -1) {
     return {
