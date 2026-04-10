@@ -6,8 +6,8 @@ import CardDialog from "@/components/CardDialog.vue";
 import { X } from "@lucide/vue";
 import type { TaskRecord } from "@/db/db";
 
-// import { useAppVariants } from "@/variants.ts";
-// const { variants } = useAppVariants();
+import { useAppVariants } from "@/variants.ts";
+const { variants } = useAppVariants();
 
 const props = defineProps<{ task: TaskRecord }>();
 
@@ -19,6 +19,11 @@ const colors = computed(() => {
   const base = generatePastelColor(props.task.title);
   return { base, accent: `color-mix(in srgb, ${base}, black 15%)` };
 });
+
+const titleLines = computed(() => props.task.title.split("\n"));
+const firstLine = computed(() => titleLines.value[0]);
+const remainingLines = computed(() => titleLines.value.slice(1).join("\n").trim());
+const isMultiline = computed(() => titleLines.value.length > 1);
 
 function handleDelete() {
   if (confirm("Delete this task?")) {
@@ -38,13 +43,13 @@ function closeEdit() {
 <template>
   <div
     class="group relative flex w-30 flex-col overflow-hidden rounded-[1px] border-0 border-black/10 shadow-sm transition-shadow select-none"
-    :style="{ backgroundColor: colors.base, height: 'var(--task-card-height)' }"
+    :style="{ backgroundColor: colors.base, minHeight: 'var(--task-card-height)' }"
     :data-task-id="task.id"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
     @dblclick="startEdit"
   >
-    <div class="relative flex flex-1 items-center justify-center px-1">
+    <div class="relative flex flex-1 flex-col items-center justify-center py-1">
       <!-- Delete button on hover -->
       <button
         v-show="isHovered"
@@ -55,12 +60,18 @@ function closeEdit() {
         <X class="h-2.5 w-3" />
       </button>
 
-      <!-- Task Title -->
-      <p
-        class="line-clamp-3 w-full text-center text-xs leading-tight font-semibold wrap-break-word whitespace-pre-wrap text-gray-800"
-      >
-        {{ task.title }}
-      </p>
+      <!-- Title -->
+      <div class="w-full text-center">
+        <p class="px-1 text-xs leading-tight font-semibold text-gray-800">
+          {{ firstLine }}
+        </p>
+        <template v-if="isMultiline">
+          <hr class="my-1" :class="[variants.border]" />
+          <p class="px-1 text-xs leading-tight whitespace-pre-wrap text-gray-800 italic">
+            {{ remainingLines }}
+          </p>
+        </template>
+      </div>
     </div>
 
     <!-- Edit Dialog -->

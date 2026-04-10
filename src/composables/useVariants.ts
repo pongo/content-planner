@@ -68,6 +68,7 @@ export function createVariants<T extends VariantsSetup>(config: T) {
           if (arr.length === 0) continue;
           const idx = arr.indexOf(state[name]);
           state[name] = arr[(idx + 1) % arr.length];
+          console.log(`[useVariants] ${name} → ${state[name]}`);
         }
       }
     }
