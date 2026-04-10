@@ -20,10 +20,24 @@ const colors = computed(() => {
   return { base, accent: `color-mix(in srgb, ${base}, black 15%)` };
 });
 
-const titleLines = computed(() => props.task.title.split("\n"));
-const firstLine = computed(() => titleLines.value[0]);
-const remainingLines = computed(() => titleLines.value.slice(1).join("\n").trim());
-const isMultiline = computed(() => titleLines.value.length > 1);
+const titleInfo = computed(() => {
+  const title = props.task.title;
+  const index = title.indexOf("\n");
+
+  if (index === -1) {
+    return {
+      firstLine: title,
+      remainingLines: "",
+      isMultiline: false,
+    };
+  }
+
+  return {
+    firstLine: title.slice(0, index),
+    remainingLines: title.slice(index + 1).trim(),
+    isMultiline: true,
+  };
+});
 
 function handleDelete() {
   if (confirm("Delete this task?")) {
@@ -63,12 +77,12 @@ function closeEdit() {
       <!-- Title -->
       <div class="w-full text-center">
         <p class="px-1 text-xs leading-tight font-semibold text-gray-800">
-          {{ firstLine }}
+          {{ titleInfo.firstLine }}
         </p>
-        <template v-if="isMultiline">
+        <template v-if="titleInfo.isMultiline">
           <hr class="my-1" :class="[variants.border]" />
           <p class="px-1 text-xs leading-tight whitespace-pre-wrap text-gray-800 italic">
-            {{ remainingLines }}
+            {{ titleInfo.remainingLines }}
           </p>
         </template>
       </div>
