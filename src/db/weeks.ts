@@ -1,3 +1,4 @@
+import { firstLine } from "@/utils/card-title.ts";
 import { getDB } from "./db";
 import type { WeekRecord } from "./db";
 
@@ -63,6 +64,7 @@ export async function completeWeek(weekId: string, targetWeekId: string): Promis
     if (task) {
       task.weekId = targetWeekId;
       task.column = "ALL";
+      task.title = firstLine(task.title).trim();
       task.order = nextOrder++;
       await tasksStore.put(task);
     }
