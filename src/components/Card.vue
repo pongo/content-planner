@@ -7,6 +7,7 @@ import { X } from "@lucide/vue";
 import type { TaskRecord } from "@/db/db";
 
 import { useAppVariants } from "@/variants.ts";
+import { parseTitle } from "@/utils/card-title.ts";
 const { variants } = useAppVariants();
 
 const props = defineProps<{ task: TaskRecord }>();
@@ -20,24 +21,7 @@ const colors = computed(() => {
   return { base, accent: `color-mix(in srgb, ${base}, black 15%)` };
 });
 
-const titleInfo = computed(() => {
-  const title = props.task.title;
-  const index = title.indexOf("\n");
-
-  if (index === -1) {
-    return {
-      firstLine: title,
-      remainingLines: "",
-      isMultiline: false,
-    };
-  }
-
-  return {
-    firstLine: title.slice(0, index),
-    remainingLines: title.slice(index + 1).trim(),
-    isMultiline: true,
-  };
-});
+const titleInfo = computed(() => parseTitle(props.task.title));
 
 function handleDelete() {
   if (confirm("Delete this task?")) {
