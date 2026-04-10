@@ -120,3 +120,11 @@ function handleKeydown(e: KeyboardEvent) {
     </div>
   </Teleport>
 </template>
+
+<style scoped>
+@supports not (field-sizing: content) {
+  textarea.field-sizing-content {
+    min-height: 50vh;
+  }
+}
+</style>
