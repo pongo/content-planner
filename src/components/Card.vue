@@ -63,7 +63,10 @@ function closeEdit() {
     @mouseleave="isHovered = false"
     @dblclick="startEdit"
   >
-    <div class="relative flex flex-1 flex-col items-center justify-center py-1">
+    <div
+      class="relative flex flex-1 flex-col items-center justify-center"
+      :class="[variants.cardPY]"
+    >
       <!-- Delete button on hover -->
       <button
         v-show="isHovered"
