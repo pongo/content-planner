@@ -10,13 +10,16 @@ const props = defineProps<{
   column?: TaskRecord["column"];
   mode: "create" | "edit";
   task?: TaskRecord;
+  initialTitle?: string;
 }>();
 
 const emit = defineEmits<{ close: [] }>();
 
 const boardStore = useBoardStore();
 
-const title = ref(props.mode === "edit" && props.task ? props.task.title : "");
+const title = ref(
+  props.mode === "edit" && props.task ? props.task.title : (props.initialTitle ?? ""),
+);
 const isSaving = ref(false);
 const overlayMousedown = ref(false);
 

@@ -16,15 +16,18 @@ async function addWeek(title: string) {
 
 const addTaskWeekId = ref<string | null>(null);
 const addTaskColumn = ref<TaskRecord["column"] | null>(null);
+const addTaskText = ref<string | undefined>(undefined);
 
-function openAddTask(weekId: string, column: TaskRecord["column"]) {
+function openAddTask(weekId: string, column: TaskRecord["column"], text?: string) {
   addTaskWeekId.value = weekId;
   addTaskColumn.value = column;
+  addTaskText.value = text;
 }
 
 function closeAddTask() {
   addTaskWeekId.value = null;
   addTaskColumn.value = null;
+  addTaskText.value = undefined;
 }
 
 function getTasks(weekId: string, column: TaskRecord["column"]) {
@@ -78,6 +81,7 @@ watch(
     v-if="addTaskWeekId && addTaskColumn"
     :week-id="addTaskWeekId"
     :column="addTaskColumn"
+    :initial-title="addTaskText"
     mode="create"
     @close="closeAddTask"
   />
