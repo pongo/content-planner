@@ -94,7 +94,7 @@ function handleKeydown(e: KeyboardEvent) {
             @keydown="handleKeydown"
             rows="3"
             placeholder=""
-            class="field-sizing-content max-h-[80vh] w-full resize-none overflow-auto border-none bg-transparent text-center text-lg font-semibold text-gray-800 outline-none"
+            class="field-sizing-content max-h-[80vh] w-full resize-none overflow-auto overflow-x-hidden border-none bg-transparent text-center text-lg font-semibold text-gray-800 outline-none"
           />
         </div>
 

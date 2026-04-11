@@ -67,7 +67,7 @@ function closeEdit() {
           {{ titleInfo.firstLine }}
         </p>
         <template v-if="titleInfo.isMultiline">
-          <hr class="my-1" :class="[variants.border]" />
+          <hr class="my-1 border-black/10" />
           <p class="px-1 text-xs leading-tight whitespace-pre-wrap text-gray-800 italic">
             {{ titleInfo.remainingLines }}
           </p>
