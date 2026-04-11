@@ -60,6 +60,7 @@ function handleCellLeave(weekId: string, col: TaskRecord["column"], e: DragEvent
 
 async function handleDragEnd(e: DraggableEvent, weekId: string, column: TaskRecord["column"]) {
   dragOverKey.value = null;
+  const dragged = draggedTask.value;
   draggedTask.value = null;
 
   if (droppedOnAddBtn.value) {
@@ -76,6 +77,13 @@ async function handleDragEnd(e: DraggableEvent, weekId: string, column: TaskReco
   const targetCol = targetTd?.dataset.column as TaskRecord["column"] | undefined;
 
   if (!targetWeekId || !targetCol) return;
+
+  // Ctrl+drop: copy mode — original stays, dialog opens with first line
+  if ((e as unknown as { originalEvent?: MouseEvent }).originalEvent?.ctrlKey && dragged) {
+    syncCellLists();
+    emit("addTask", targetWeekId, targetCol, firstLine(dragged.title));
+    return;
+  }
 
   const targetKey = cellKey(targetWeekId, targetCol);
 
