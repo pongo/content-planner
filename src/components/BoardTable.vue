@@ -44,20 +44,6 @@ const draggedTask = ref<TaskRecord | null>(null);
 const dragOverAddBtn = ref(false);
 const droppedOnAddBtn = ref(false);
 
-function handleCellEnter(weekId: string, col: TaskRecord["column"]) {
-  dragOverKey.value = cellKey(weekId, col);
-}
-
-function handleCellLeave(weekId: string, col: TaskRecord["column"], e: DragEvent) {
-  const td = e.currentTarget as HTMLElement;
-  const related = e.relatedTarget as Node | null;
-  if (!related || !td.contains(related)) {
-    if (dragOverKey.value === cellKey(weekId, col)) {
-      dragOverKey.value = null;
-    }
-  }
-}
-
 async function handleDragEnd(e: DraggableEvent, weekId: string, column: TaskRecord["column"]) {
   dragOverKey.value = null;
   const dragged = draggedTask.value;
@@ -218,12 +204,9 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
             :key="colInfo.key"
             :colspan="colInfo.colspan"
             class="relative border-r border-b border-gray-200 bg-gray-50 p-2 align-top last:border-r-0"
-            :class="{ 'sortable-dragover': dragOverKey === cellKey(week.id, colInfo.key) }"
             :data-week-id="week.id"
             :data-column="colInfo.key"
             style="height: 1px"
-            @dragenter="handleCellEnter(week.id, colInfo.key)"
-            @dragleave="handleCellLeave(week.id, colInfo.key, $event)"
           >
             <div class="flex h-full flex-col">
               <!-- vue-draggable-plus -->
@@ -231,7 +214,7 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
                 :key="cellKey(week.id, colInfo.key)"
                 v-model="cellLists[cellKey(week.id, colInfo.key)]!"
                 :group="{ name: 'tasks', pull: true, put: true }"
-                class="flex flex-1 flex-wrap content-start items-start gap-2"
+                class="flex w-full flex-1 flex-wrap content-start items-start gap-2"
                 :animation="150"
                 :sort="false"
                 ghost-class="sortable-ghost"
@@ -288,6 +271,10 @@ tbody td,
 tfoot td {
   position: relative;
   z-index: 1;
+}
+
+tbody td:has(.sortable-ghost) {
+  @apply bg-blue-100/60!;
 }
 
 .sortable-ghost {
