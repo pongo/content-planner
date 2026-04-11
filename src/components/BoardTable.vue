@@ -4,6 +4,7 @@ import { VueDraggable, type DraggableEvent } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
 import Card from "@/components/Card.vue";
 import { Plus, Check } from "@lucide/vue";
+import { firstLine } from "@/utils/card-title";
 import type { TaskRecord, WeekRecord } from "@/db/db";
 
 const props = defineProps<{
@@ -12,7 +13,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  addTask: [weekId: string, column: TaskRecord["column"]];
+  addTask: [weekId: string, column: TaskRecord["column"], text?: string];
   addWeek: [title: string];
   weekDelete: [id: string];
   weekComplete: [id: string];
@@ -39,6 +40,9 @@ function cellKey(weekId: string, column: TaskRecord["column"]) {
 }
 
 const dragOverKey = ref<string | null>(null);
+const draggedTask = ref<TaskRecord | null>(null);
+const dragOverAddBtn = ref(false);
+const droppedOnAddBtn = ref(false);
 
 function handleCellEnter(weekId: string, col: TaskRecord["column"]) {
   dragOverKey.value = cellKey(weekId, col);
@@ -56,6 +60,15 @@ function handleCellLeave(weekId: string, col: TaskRecord["column"], e: DragEvent
 
 async function handleDragEnd(e: DraggableEvent, weekId: string, column: TaskRecord["column"]) {
   dragOverKey.value = null;
+  const dragged = draggedTask.value;
+  draggedTask.value = null;
+
+  if (droppedOnAddBtn.value) {
+    droppedOnAddBtn.value = false;
+    syncCellLists();
+    return;
+  }
+
   const sourceKey = cellKey(weekId, column);
   const sourceTasks = cellLists.value[sourceKey] ?? [];
 
@@ -64,6 +77,13 @@ async function handleDragEnd(e: DraggableEvent, weekId: string, column: TaskReco
   const targetCol = targetTd?.dataset.column as TaskRecord["column"] | undefined;
 
   if (!targetWeekId || !targetCol) return;
+
+  // Ctrl+drop: copy mode — original stays, dialog opens with first line
+  if ((e as unknown as { originalEvent?: MouseEvent }).originalEvent?.ctrlKey && dragged) {
+    syncCellLists();
+    emit("addTask", targetWeekId, targetCol, firstLine(dragged.title));
+    return;
+  }
 
   const targetKey = cellKey(targetWeekId, targetCol);
 
@@ -80,6 +100,20 @@ async function handleDragEnd(e: DraggableEvent, weekId: string, column: TaskReco
       targetTasks,
     );
   }
+}
+
+function handleDragStart(e: DraggableEvent) {
+  const taskId = (e.item as HTMLElement).dataset.taskId;
+  if (taskId) {
+    draggedTask.value = boardStore.tasks.find((t) => t.id === taskId) ?? null;
+  }
+}
+
+function handleDropOnAdd(weekId: string) {
+  const text = draggedTask.value ? firstLine(draggedTask.value.title) : undefined;
+  emit("addTask", weekId, "ALL", text);
+  dragOverAddBtn.value = false;
+  droppedOnAddBtn.value = true;
 }
 
 function getWeekColumns(week: WeekRecord): { key: TaskRecord["column"]; colspan?: number }[] {
@@ -154,8 +188,13 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
             <button
               v-if="week.title === 'Categories'"
               class="group flex h-full w-full items-center justify-center text-gray-400 transition-colors"
+              :class="{ 'sortable-dragover': dragOverAddBtn }"
               title="Добавить карточку"
               @click="emit('addTask', week.id, 'ALL')"
+              @dragover.prevent
+              @drop.prevent="handleDropOnAdd(week.id)"
+              @dragenter="dragOverAddBtn = true"
+              @dragleave="dragOverAddBtn = false"
             >
               <Plus
                 class="h-6 w-6 rounded p-1 transition-colors group-hover:bg-gray-100 group-hover:text-gray-600"
@@ -199,6 +238,7 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
                 chosen-class="sortable-chosen"
                 fallback-class="sortable-fallback"
                 :fallback-tolerance="3"
+                @start="(e: any) => handleDragStart(e)"
                 @end="(e: any) => handleDragEnd(e, week.id, colInfo.key)"
               >
                 <Card
