@@ -51,26 +51,25 @@ export async function completeWeek(weekId: string, targetWeekId: string): Promis
   const weeksStore = tx.objectStore("weeks");
   const tasksStore = tx.objectStore("tasks");
 
-  // Get all tasks associated with the source week
   const taskIds = await tasksStore.index("by-week").getAllKeys(weekId);
-
-  // Get target tasks to determine order
   const targetTasks = await tasksStore.index("by-week").getAll(targetWeekId);
   let nextOrder = targetTasks.length;
-
-  // Move tasks and update their properties
   for (const taskId of taskIds) {
     const task = await tasksStore.get(taskId);
-    if (task) {
-      task.weekId = targetWeekId;
-      task.column = "ALL";
-      task.title = firstLine(task.title).trim();
-      task.order = nextOrder++;
-      await tasksStore.put(task);
+    if (!task) continue;
+
+    if (task.title.startsWith("-")) {
+      await tasksStore.delete(taskId);
+      continue;
     }
+
+    task.weekId = targetWeekId;
+    task.column = "ALL";
+    task.title = firstLine(task.title).trim();
+    task.order = nextOrder++;
+    await tasksStore.put(task);
   }
 
-  // Delete the source week
   await weeksStore.delete(weekId);
 
   await tx.done;
