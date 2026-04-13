@@ -1,5 +1,5 @@
 import type { BoardRecord } from "@/db/db";
-import { getAllTasks } from "@/db/tasks";
+import { getAllTasks } from "@/db/cards";
 
 export async function exportBoardToMarkdown(board: BoardRecord): Promise<string> {
   const tasks = await getAllTasks();

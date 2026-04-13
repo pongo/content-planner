@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import type { BoardRecord, WeekRecord, TaskRecord } from "@/db/db";
 import * as boardsApi from "@/db/boards";
 import * as weeksApi from "@/db/weeks.ts";
-import * as tasksApi from "@/db/tasks";
+import * as tasksApi from "@/db/cards";
 import { generateUniqueSlug } from "@/utils/slug";
 
 const COLUMNS: TaskRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
