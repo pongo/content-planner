@@ -110,6 +110,10 @@ function handleKeydown(e: KeyboardEvent) {
           >
             <Check class="h-4 w-4" />
             <span>{{ mode === "create" ? "Создать" : "Сохранить" }}</span>
+            <kbd
+              class="ml-1 rounded border border-white/30 bg-white/10 px-1 text-[10px] font-normal opacity-80"
+              >Ctrl+Enter</kbd
+            >
           </button>
           <button
             @click="handleCancel"
@@ -117,6 +121,10 @@ function handleKeydown(e: KeyboardEvent) {
           >
             <X class="h-4 w-4" />
             <span>Отмена</span>
+            <kbd
+              class="ml-1 rounded border border-white/30 bg-white/10 px-1 text-[10px] font-normal opacity-80"
+              >Esc</kbd
+            >
           </button>
         </div>
       </div>
