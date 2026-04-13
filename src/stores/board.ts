@@ -1,23 +1,23 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import type { BoardRecord, WeekRecord, TaskRecord } from "@/db/db";
+import type { BoardRecord, WeekRecord, CardRecord } from "@/db/db";
 import * as boardsApi from "@/db/boards";
 import * as weeksApi from "@/db/weeks.ts";
-import * as tasksApi from "@/db/tasks";
+import * as cardsApi from "@/db/cards";
 import { generateUniqueSlug } from "@/utils/slug";
 
-const COLUMNS: TaskRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+const COLUMNS: CardRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 export const useBoardStore = defineStore("board", () => {
   const currentBoard = ref<BoardRecord | null>(null);
   const weeks = ref<WeekRecord[]>([]);
-  const tasks = ref<TaskRecord[]>([]);
+  const cards = ref<CardRecord[]>([]);
   const loading = ref(false);
 
   const columns = computed(() => COLUMNS);
 
-  function getTasksForWeek(weekId: string, column: TaskRecord["column"]) {
-    return tasks.value
+  function getCardsForWeek(weekId: string, column: CardRecord["column"]) {
+    return cards.value
       .filter((t) => t.weekId === weekId && t.column === column)
       .toSorted((a, b) => a.title.localeCompare(b.title));
   }
@@ -30,27 +30,27 @@ export const useBoardStore = defineStore("board", () => {
       currentBoard.value = board;
 
       const boardId = board.id;
-      const [weeksList, allTasks] = await Promise.all([
+      const [weeksList, allCards] = await Promise.all([
         weeksApi.getWeeksByBoard(boardId),
-        loadAllTasksForBoard(boardId),
+        loadAllCardsForBoard(boardId),
       ]);
       weeks.value = weeksList;
-      tasks.value = allTasks;
+      cards.value = allCards;
     } finally {
       loading.value = false;
     }
   }
 
-  async function loadAllTasksForBoard(boardId: string): Promise<TaskRecord[]> {
+  async function loadAllCardsForBoard(boardId: string): Promise<CardRecord[]> {
     const weeksList = await weeksApi.getWeeksByBoard(boardId);
-    const allTasks: TaskRecord[] = [];
-    // Load tasks for all weeks in parallel
-    const taskPromises = weeksList.map((week) => tasksApi.getTasksByWeek(week.id));
-    const results = await Promise.all(taskPromises);
+    const allCards: CardRecord[] = [];
+    // Load cards for all weeks in parallel
+    const cardPromises = weeksList.map((week) => cardsApi.getCardsByWeek(week.id));
+    const results = await Promise.all(cardPromises);
     for (const result of results) {
-      allTasks.push(...result);
+      allCards.push(...result);
     }
-    return allTasks;
+    return allCards;
   }
 
   async function createBoard(title: string): Promise<string> {
@@ -85,7 +85,7 @@ export const useBoardStore = defineStore("board", () => {
     await boardsApi.deleteBoard(currentBoard.value.id);
     currentBoard.value = null;
     weeks.value = [];
-    tasks.value = [];
+    cards.value = [];
   }
 
   async function createWeek(title: string): Promise<void> {
@@ -101,7 +101,7 @@ export const useBoardStore = defineStore("board", () => {
   async function deleteWeek(weekId: string): Promise<void> {
     await weeksApi.deleteWeek(weekId);
     weeks.value = weeks.value.filter((s) => s.id !== weekId);
-    tasks.value = tasks.value.filter((t) => t.weekId !== weekId);
+    cards.value = cards.value.filter((t) => t.weekId !== weekId);
   }
 
   async function completeWeek(weekId: string): Promise<void> {
@@ -113,114 +113,114 @@ export const useBoardStore = defineStore("board", () => {
     // Refresh store
     if (currentBoard.value) {
       const boardId = currentBoard.value.id;
-      const [weeksList, allTasks] = await Promise.all([
+      const [weeksList, allCards] = await Promise.all([
         weeksApi.getWeeksByBoard(boardId),
-        loadAllTasksForBoard(boardId),
+        loadAllCardsForBoard(boardId),
       ]);
       weeks.value = weeksList;
-      tasks.value = allTasks;
+      cards.value = allCards;
     }
   }
 
-  async function createTask(
+  async function createCard(
     weekId: string,
     title: string,
-    column: TaskRecord["column"],
+    column: CardRecord["column"],
   ): Promise<void> {
     const id = crypto.randomUUID();
-    await tasksApi.createTask({
+    await cardsApi.createCard({
       id,
       weekId,
       column,
       title,
     });
-    const task = await tasksApi
-      .getTasksByWeek(weekId, column)
+    const card = await cardsApi
+      .getCardsByWeek(weekId, column)
       .then((t) => t.find((x) => x.id === id));
-    if (task) tasks.value.push(task);
+    if (card) cards.value.push(card);
   }
 
-  async function updateTask(
-    taskId: string,
+  async function updateCard(
+    cardId: string,
     updates: {
       title?: string;
       weekId?: string;
-      column?: TaskRecord["column"];
+      column?: CardRecord["column"];
       order?: number;
     },
   ): Promise<void> {
-    await tasksApi.updateTask(taskId, updates);
-    const task = tasks.value.find((t) => t.id === taskId);
-    if (task) {
-      if (updates.title !== undefined) task.title = updates.title;
-      if (updates.weekId !== undefined) task.weekId = updates.weekId;
-      if (updates.column !== undefined) task.column = updates.column;
-      if (updates.order !== undefined) task.order = updates.order;
+    await cardsApi.updateCard(cardId, updates);
+    const card = cards.value.find((t) => t.id === cardId);
+    if (card) {
+      if (updates.title !== undefined) card.title = updates.title;
+      if (updates.weekId !== undefined) card.weekId = updates.weekId;
+      if (updates.column !== undefined) card.column = updates.column;
+      if (updates.order !== undefined) card.order = updates.order;
     }
   }
 
-  async function deleteTask(taskId: string): Promise<void> {
-    await tasksApi.deleteTask(taskId);
-    tasks.value = tasks.value.filter((t) => t.id !== taskId);
+  async function deleteCard(cardId: string): Promise<void> {
+    await cardsApi.deleteCard(cardId);
+    cards.value = cards.value.filter((t) => t.id !== cardId);
   }
 
-  async function moveTask(
-    taskId: string,
+  async function moveCard(
+    cardId: string,
     newWeekId: string,
-    newColumn: TaskRecord["column"],
+    newColumn: CardRecord["column"],
     targetIndex?: number,
   ): Promise<void> {
-    if (!taskId) return;
+    if (!cardId) return;
 
-    // Get tasks in the target cell to compute correct order
-    const targetTasks = getTasksForWeek(newWeekId, newColumn);
-    const index = targetIndex ?? targetTasks.length;
+    // Get cards in the target cell to compute correct order
+    const targetCards = getCardsForWeek(newWeekId, newColumn);
+    const index = targetIndex ?? targetCards.length;
 
-    // Save the moved task with its new location and order
-    await tasksApi.moveTask(taskId, newWeekId, newColumn, index);
+    // Save the moved card with its new location and order
+    await cardsApi.moveCard(cardId, newWeekId, newColumn, index);
 
-    // Reload all tasks so cellLists watcher picks up the changes
+    // Reload all cards so cellLists watcher picks up the changes
     if (currentBoard.value) {
-      const refreshed = await loadAllTasksForBoard(currentBoard.value.id);
-      tasks.value = refreshed;
+      const refreshed = await loadAllCardsForBoard(currentBoard.value.id);
+      cards.value = refreshed;
     }
   }
 
   async function saveCell(
     weekId: string,
-    column: TaskRecord["column"],
-    cellTasks: TaskRecord[],
+    column: CardRecord["column"],
+    cellCards: CardRecord[],
   ): Promise<void> {
-    await tasksApi.saveCellTasks(weekId, column, cellTasks);
+    await cardsApi.saveCellCards(weekId, column, cellCards);
 
-    // Reload all tasks so cellLists watcher picks up the changes
+    // Reload all cards so cellLists watcher picks up the changes
     if (currentBoard.value) {
-      const refreshed = await loadAllTasksForBoard(currentBoard.value.id);
-      tasks.value = refreshed;
+      const refreshed = await loadAllCardsForBoard(currentBoard.value.id);
+      cards.value = refreshed;
     }
   }
 
   async function saveBothCells(
     sourceWeekId: string,
-    sourceColumn: TaskRecord["column"],
-    sourceTasks: TaskRecord[],
+    sourceColumn: CardRecord["column"],
+    sourceCards: CardRecord[],
     targetWeekId: string,
-    targetColumn: TaskRecord["column"],
-    targetTasks: TaskRecord[],
+    targetColumn: CardRecord["column"],
+    targetCards: CardRecord[],
   ): Promise<void> {
-    await tasksApi.saveBothCellsTasks(
+    await cardsApi.saveBothCellsCards(
       sourceWeekId,
       sourceColumn,
-      sourceTasks,
+      sourceCards,
       targetWeekId,
       targetColumn,
-      targetTasks,
+      targetCards,
     );
 
-    // Reload all tasks so cellLists watcher picks up the changes
+    // Reload all cards so cellLists watcher picks up the changes
     if (currentBoard.value) {
-      const refreshed = await loadAllTasksForBoard(currentBoard.value.id);
-      tasks.value = refreshed;
+      const refreshed = await loadAllCardsForBoard(currentBoard.value.id);
+      cards.value = refreshed;
     }
   }
 
@@ -231,10 +231,10 @@ export const useBoardStore = defineStore("board", () => {
   return {
     currentBoard,
     weeks,
-    tasks,
+    cards,
     loading,
     columns,
-    getTasksForWeek,
+    getCardsForWeek,
     loadBoard,
     createBoard,
     updateBoardTitle,
@@ -242,10 +242,10 @@ export const useBoardStore = defineStore("board", () => {
     createWeek,
     deleteWeek,
     completeWeek,
-    createTask,
-    updateTask,
-    deleteTask,
-    moveTask,
+    createCard,
+    updateCard,
+    deleteCard,
+    moveCard,
     saveCell,
     saveBothCells,
     loadAllBoards,

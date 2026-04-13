@@ -30,16 +30,16 @@ export async function updateWeek(
 
 export async function deleteWeek(id: string): Promise<void> {
   const db = await getDB();
-  const tx = db.transaction(["weeks", "tasks"], "readwrite");
+  const tx = db.transaction(["weeks", "cards"], "readwrite");
   const weeksStore = tx.objectStore("weeks");
-  const tasksStore = tx.objectStore("tasks");
+  const cardsStore = tx.objectStore("cards");
 
-  // Get all tasks associated with the week
-  const taskIds = await tasksStore.index("by-week").getAllKeys(id);
+  // Get all cards associated with the week
+  const cardIds = await cardsStore.index("by-week").getAllKeys(id);
 
-  // Delete all tasks and the week in parallel, wait for tx to commit
+  // Delete all cards and the week in parallel, wait for tx to commit
   await Promise.all([
-    ...taskIds.map((taskId) => tasksStore.delete(taskId)),
+    ...cardIds.map((cardId) => cardsStore.delete(cardId)),
     weeksStore.delete(id),
     tx.done,
   ]);
@@ -47,27 +47,27 @@ export async function deleteWeek(id: string): Promise<void> {
 
 export async function completeWeek(weekId: string, targetWeekId: string): Promise<void> {
   const db = await getDB();
-  const tx = db.transaction(["weeks", "tasks"], "readwrite");
+  const tx = db.transaction(["weeks", "cards"], "readwrite");
   const weeksStore = tx.objectStore("weeks");
-  const tasksStore = tx.objectStore("tasks");
+  const cardsStore = tx.objectStore("cards");
 
-  const taskIds = await tasksStore.index("by-week").getAllKeys(weekId);
-  const targetTasks = await tasksStore.index("by-week").getAll(targetWeekId);
-  let nextOrder = targetTasks.length;
-  for (const taskId of taskIds) {
-    const task = await tasksStore.get(taskId);
-    if (!task) continue;
+  const cardIds = await cardsStore.index("by-week").getAllKeys(weekId);
+  const targetCards = await cardsStore.index("by-week").getAll(targetWeekId);
+  let nextOrder = targetCards.length;
+  for (const cardId of cardIds) {
+    const card = await cardsStore.get(cardId);
+    if (!card) continue;
 
-    if (task.title.startsWith("-")) {
-      await tasksStore.delete(taskId);
+    if (card.title.startsWith("-")) {
+      await cardsStore.delete(cardId);
       continue;
     }
 
-    task.weekId = targetWeekId;
-    task.column = "ALL";
-    task.title = firstLine(task.title).trim();
-    task.order = nextOrder++;
-    await tasksStore.put(task);
+    card.weekId = targetWeekId;
+    card.column = "ALL";
+    card.title = firstLine(card.title).trim();
+    card.order = nextOrder++;
+    await cardsStore.put(card);
   }
 
   await weeksStore.delete(weekId);

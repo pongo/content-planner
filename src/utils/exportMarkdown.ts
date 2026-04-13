@@ -1,16 +1,16 @@
 import type { BoardRecord } from "@/db/db";
-import { getAllTasks } from "@/db/tasks";
+import { getAllCards } from "@/db/cards";
 
 export async function exportBoardToMarkdown(board: BoardRecord): Promise<string> {
-  const tasks = await getAllTasks();
+  const cards = await getAllCards();
 
   const lines: string[] = [];
   lines.push(`# ${board.title}`);
   lines.push("");
   lines.push(`${window.location.origin}/${board.slug}`);
 
-  for (const task of tasks) {
-    lines.push(`\n${toMarkdownQuote(task.title)}`);
+  for (const card of cards) {
+    lines.push(`\n${toMarkdownQuote(card.title)}`);
   }
 
   return lines.join("\n") + "\n";

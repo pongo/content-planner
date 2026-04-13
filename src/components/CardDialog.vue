@@ -2,13 +2,13 @@
 import { ref, onMounted } from "vue";
 import { useBoardStore } from "@/stores/board";
 import { generatePastelColor } from "@/utils/pastelColor";
-import type { TaskRecord } from "@/db/db";
+import type { CardRecord } from "@/db/db";
 
 const props = defineProps<{
   weekId: string;
-  column?: TaskRecord["column"];
+  column?: CardRecord["column"];
   mode: "create" | "edit";
-  task?: TaskRecord;
+  card?: CardRecord;
   initialTitle?: string;
 }>();
 
@@ -17,7 +17,7 @@ const emit = defineEmits<{ close: [] }>();
 const boardStore = useBoardStore();
 
 const title = ref(
-  props.mode === "edit" && props.task ? props.task.title : (props.initialTitle ?? ""),
+  props.mode === "edit" && props.card ? props.card.title : (props.initialTitle ?? ""),
 );
 const isSaving = ref(false);
 const overlayMousedown = ref(false);
@@ -46,15 +46,15 @@ async function handleSave() {
   try {
     if (props.mode === "create") {
       if (!props.column) throw new Error("Column is required for creation");
-      await boardStore.createTask(props.weekId, trimmed, props.column);
-    } else if (props.task) {
-      await boardStore.updateTask(props.task.id, {
+      await boardStore.createCard(props.weekId, trimmed, props.column);
+    } else if (props.card) {
+      await boardStore.updateCard(props.card.id, {
         title: trimmed,
       });
     }
     emit("close");
   } catch (e) {
-    console.error("Failed to save task:", e);
+    console.error("Failed to save card:", e);
   } finally {
     isSaving.value = false;
   }

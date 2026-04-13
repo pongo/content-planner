@@ -14,7 +14,7 @@ export interface WeekRecord {
   order: number;
 }
 
-export interface TaskRecord {
+export interface CardRecord {
   id: string;
   weekId: string;
   column: "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN" | "ALL";
@@ -33,9 +33,9 @@ export interface ContentPlannerDB extends DBSchema {
     value: WeekRecord;
     indexes: { "by-board": string };
   };
-  tasks: {
+  cards: {
     key: string;
-    value: TaskRecord;
+    value: CardRecord;
     indexes: { "by-week": string; "by-week-column": [string, string] };
   };
 }
@@ -58,11 +58,11 @@ export async function initDB() {
         weekStore.createIndex("by-board", "boardId");
       }
 
-      // Tasks store
-      if (!db.objectStoreNames.contains("tasks")) {
-        const taskStore = db.createObjectStore("tasks", { keyPath: "id" });
-        taskStore.createIndex("by-week", "weekId");
-        taskStore.createIndex("by-week-column", ["weekId", "column"], {
+      // Cards store
+      if (!db.objectStoreNames.contains("cards")) {
+        const cardStore = db.createObjectStore("cards", { keyPath: "id" });
+        cardStore.createIndex("by-week", "weekId");
+        cardStore.createIndex("by-week-column", ["weekId", "column"], {
           multiEntry: false,
         });
       }

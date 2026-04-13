@@ -5,15 +5,15 @@ import { useBoardStore } from "@/stores/board";
 import Card from "@/components/Card.vue";
 import { Plus, Check } from "@lucide/vue";
 import { firstLine } from "@/utils/card-title";
-import type { TaskRecord, WeekRecord } from "@/db/db";
+import type { CardRecord, WeekRecord } from "@/db/db";
 
 const props = defineProps<{
   weeks: WeekRecord[];
-  getTasks: (weekId: string, column: TaskRecord["column"]) => TaskRecord[];
+  getCards: (weekId: string, column: CardRecord["column"]) => CardRecord[];
 }>();
 
 const emit = defineEmits<{
-  addTask: [weekId: string, column: TaskRecord["column"], text?: string];
+  addCard: [weekId: string, column: CardRecord["column"], text?: string];
   addWeek: [title: string];
   weekDelete: [id: string];
   weekComplete: [id: string];
@@ -33,21 +33,21 @@ const columnLabels: Record<string, string> = {
   SUN: "ВС",
 };
 
-const columns: TaskRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+const columns: CardRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
-function cellKey(weekId: string, column: TaskRecord["column"]) {
+function cellKey(weekId: string, column: CardRecord["column"]) {
   return `${weekId}:${column}`;
 }
 
 const dragOverKey = ref<string | null>(null);
-const draggedTask = ref<TaskRecord | null>(null);
+const draggedCard = ref<CardRecord | null>(null);
 const dragOverAddBtn = ref(false);
 const droppedOnAddBtn = ref(false);
 
-async function handleDragEnd(e: DraggableEvent, weekId: string, column: TaskRecord["column"]) {
+async function handleDragEnd(e: DraggableEvent, weekId: string, column: CardRecord["column"]) {
   dragOverKey.value = null;
-  const dragged = draggedTask.value;
-  draggedTask.value = null;
+  const dragged = draggedCard.value;
+  draggedCard.value = null;
 
   if (droppedOnAddBtn.value) {
     droppedOnAddBtn.value = false;
@@ -56,53 +56,53 @@ async function handleDragEnd(e: DraggableEvent, weekId: string, column: TaskReco
   }
 
   const sourceKey = cellKey(weekId, column);
-  const sourceTasks = cellLists.value[sourceKey] ?? [];
+  const sourceCards = cellLists.value[sourceKey] ?? [];
 
   const targetTd = e.to.closest("td[data-week-id]") as HTMLTableCellElement | null;
   const targetWeekId = targetTd?.dataset.weekId;
-  const targetCol = targetTd?.dataset.column as TaskRecord["column"] | undefined;
+  const targetCol = targetTd?.dataset.column as CardRecord["column"] | undefined;
 
   if (!targetWeekId || !targetCol) return;
 
   // Ctrl+drop: copy mode — original stays, dialog opens with first line
   if ((e as unknown as { originalEvent?: MouseEvent }).originalEvent?.ctrlKey && dragged) {
     syncCellLists();
-    emit("addTask", targetWeekId, targetCol, firstLine(dragged.title));
+    emit("addCard", targetWeekId, targetCol, firstLine(dragged.title));
     return;
   }
 
   const targetKey = cellKey(targetWeekId, targetCol);
 
   if (e.to === e.from) {
-    await boardStore.saveCell(weekId, column, sourceTasks);
+    await boardStore.saveCell(weekId, column, sourceCards);
   } else {
-    const targetTasks = cellLists.value[targetKey] ?? [];
+    const targetCards = cellLists.value[targetKey] ?? [];
     await boardStore.saveBothCells(
       weekId,
       column,
-      sourceTasks,
+      sourceCards,
       targetWeekId,
       targetCol,
-      targetTasks,
+      targetCards,
     );
   }
 }
 
 function handleDragStart(e: DraggableEvent) {
-  const taskId = (e.item as HTMLElement).dataset.taskId;
-  if (taskId) {
-    draggedTask.value = boardStore.tasks.find((t) => t.id === taskId) ?? null;
+  const cardId = (e.item as HTMLElement).dataset.cardId;
+  if (cardId) {
+    draggedCard.value = boardStore.cards.find((t) => t.id === cardId) ?? null;
   }
 }
 
 function handleDropOnAdd(weekId: string) {
-  const text = draggedTask.value ? firstLine(draggedTask.value.title) : undefined;
-  emit("addTask", weekId, "ALL", text);
+  const text = draggedCard.value ? firstLine(draggedCard.value.title) : undefined;
+  emit("addCard", weekId, "ALL", text);
   dragOverAddBtn.value = false;
   droppedOnAddBtn.value = true;
 }
 
-function getWeekColumns(week: WeekRecord): { key: TaskRecord["column"]; colspan?: number }[] {
+function getWeekColumns(week: WeekRecord): { key: CardRecord["column"]; colspan?: number }[] {
   if (week.title === "Categories") {
     return [{ key: "ALL", colspan: 7 }];
   }
@@ -110,10 +110,10 @@ function getWeekColumns(week: WeekRecord): { key: TaskRecord["column"]; colspan?
 }
 
 // Each cell gets its own mutable array that vue-draggable can reorder
-const cellLists = ref<Record<string, TaskRecord[]>>({});
+const cellLists = ref<Record<string, CardRecord[]>>({});
 const boardStore = useBoardStore();
 
-const isBoardEmpty = computed(() => boardStore.tasks.length === 0);
+const isBoardEmpty = computed(() => boardStore.cards.length === 0);
 
 // Sync cellLists with store data — mutate in-place to keep VueDraggable's reference
 function syncCellLists() {
@@ -122,21 +122,21 @@ function syncCellLists() {
     for (const colInfo of colsToSync) {
       const col = colInfo.key;
       const key = cellKey(week.id, col);
-      const newTasks = [...props.getTasks(week.id, col)];
+      const newCards = [...props.getCards(week.id, col)];
       if (!cellLists.value[key]) {
-        cellLists.value[key] = newTasks;
+        cellLists.value[key] = newCards;
       } else {
         // Mutate existing array in-place so VueDraggable's v-model reference stays valid
         const existing = cellLists.value[key]!;
         existing.length = 0;
-        existing.push(...newTasks);
+        existing.push(...newCards);
       }
     }
   }
 }
 
-// Initial sync + watch for store changes (weeks and tasks)
-watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
+// Initial sync + watch for store changes (weeks and cards)
+watch([() => props.weeks, () => boardStore.cards], () => syncCellLists(), {
   deep: true,
   immediate: true,
 });
@@ -169,14 +169,14 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
         <tr v-for="week in weeks" :key="week.id" class="week">
           <!-- Add Card or Complete Week Button Cell -->
           <td
-            class="h-[calc(var(--task-card-height)+8px*2+1px)] border-r border-b border-gray-200 bg-white"
+            class="h-[calc(var(--card-card-height)+8px*2+1px)] border-r border-b border-gray-200 bg-white"
           >
             <button
               v-if="week.title === 'Categories'"
               class="group flex h-full w-full items-center justify-center text-gray-400 transition-colors"
               :class="{ 'sortable-dragover': dragOverAddBtn }"
               title="Добавить карточку"
-              @click="emit('addTask', week.id, 'ALL')"
+              @click="emit('addCard', week.id, 'ALL')"
               @dragover.prevent
               @drop.prevent="handleDropOnAdd(week.id)"
               @dragenter="dragOverAddBtn = true"
@@ -213,7 +213,7 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
               <VueDraggable
                 :key="cellKey(week.id, colInfo.key)"
                 v-model="cellLists[cellKey(week.id, colInfo.key)]!"
-                :group="{ name: 'tasks', pull: true, put: true }"
+                :group="{ name: 'cards', pull: true, put: true }"
                 class="flex w-full flex-1 flex-wrap content-start items-start gap-2"
                 :animation="150"
                 :sort="false"
@@ -225,9 +225,9 @@ watch([() => props.weeks, () => boardStore.tasks], () => syncCellLists(), {
                 @end="(e: any) => handleDragEnd(e, week.id, colInfo.key)"
               >
                 <Card
-                  v-for="task in cellLists[cellKey(week.id, colInfo.key)]"
-                  :key="task.id"
-                  :task="task"
+                  v-for="card in cellLists[cellKey(week.id, colInfo.key)]"
+                  :key="card.id"
+                  :card="card"
                 />
               </VueDraggable>
               <div
