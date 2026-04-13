@@ -14,6 +14,11 @@ export async function getTasksByWeek(weekId: string, column?: TaskColumn): Promi
   return result.toSorted((a, b) => a.title.localeCompare(b.title));
 }
 
+export async function getAllTasks(): Promise<TaskRecord[]> {
+  const db = await getDB();
+  return db.getAll("tasks");
+}
+
 export async function createTask(task: Omit<TaskRecord, "order">): Promise<string> {
   const db = await getDB();
   const existing = await getTasksByWeek(task.weekId, task.column);
