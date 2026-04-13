@@ -48,7 +48,7 @@ function handleKeydown(e: KeyboardEvent) {
           v-model="title"
           @keydown="handleKeydown"
           type="text"
-          placeholder="Board title"
+          placeholder="Название доски"
           class="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-gray-800 shadow-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           :disabled="isCreating"
         />
@@ -57,7 +57,7 @@ function handleKeydown(e: KeyboardEvent) {
           :disabled="isCreating || !title.trim()"
           class="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {{ isCreating ? "Creating..." : "Create" }}
+          {{ isCreating ? "Создание..." : "Создать" }}
         </button>
       </div>
     </div>

@@ -35,7 +35,7 @@ onMounted(() => {
     <button
       @click="openDrawer"
       class="rounded p-1 text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-      title="Open boards menu"
+      title="Открыть меню досок"
     >
       <Menu class="size-6" />
     </button>
@@ -54,7 +54,7 @@ onMounted(() => {
       />
     </div>
     <h1 v-else class="flex-1 text-xl font-semibold text-gray-800">
-      <span @dblclick="startEditingTitle" title="Double click to edit">{{
+      <span @dblclick="startEditingTitle" title="Двойной клик для редактирования">{{
         boardStore.currentBoard!.title
       }}</span>
     </h1>

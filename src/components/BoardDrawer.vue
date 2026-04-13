@@ -120,9 +120,9 @@ async function deleteBoard(board: BoardRecord) {
             <button
               @click="navigateToCreate"
               class="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-              title="Create new board"
+              title="Создать новую доску"
             >
-              Create new board
+              Создать новую доску
             </button>
           </div>
         </div>

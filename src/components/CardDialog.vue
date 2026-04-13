@@ -109,14 +109,14 @@ function handleKeydown(e: KeyboardEvent) {
             class="flex flex-1 items-center justify-center gap-1 bg-green-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Check class="h-4 w-4" />
-            <span>{{ mode === "create" ? "Create" : "Save" }}</span>
+            <span>{{ mode === "create" ? "Создать" : "Сохранить" }}</span>
           </button>
           <button
             @click="handleCancel"
             class="flex flex-1 items-center justify-center gap-1 bg-gray-400 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-500"
           >
             <X class="h-4 w-4" />
-            <span>Cancel</span>
+            <span>Отмена</span>
           </button>
         </div>
       </div>
