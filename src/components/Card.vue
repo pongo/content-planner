@@ -5,10 +5,10 @@ import { generatePastelColor } from "@/utils/pastelColor";
 import CardDialog from "@/components/CardDialog.vue";
 import { X } from "@lucide/vue";
 import type { CardRecord } from "@/db/db";
-
-import { useAppVariants } from "@/variants.ts";
 import { parseTitle } from "@/utils/card-title.ts";
-const { variants } = useAppVariants();
+
+// import { useAppVariants } from "@/variants.ts";
+// const { variants } = useAppVariants();
 
 const props = defineProps<{ card: CardRecord }>();
 
@@ -47,10 +47,7 @@ function closeEdit() {
     @mouseleave="isHovered = false"
     @dblclick="startEdit"
   >
-    <div
-      class="relative flex flex-1 flex-col items-center justify-center"
-      :class="[variants.cardPY]"
-    >
+    <div class="relative flex flex-1 flex-col items-center justify-center py-1.25">
       <!-- Delete button on hover -->
       <button
         v-show="isHovered"
