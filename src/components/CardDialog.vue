@@ -2,7 +2,6 @@
 import { ref, onMounted } from "vue";
 import { useBoardStore } from "@/stores/board";
 import { generatePastelColor } from "@/utils/pastelColor";
-import { Check, X } from "@lucide/vue";
 import type { TaskRecord } from "@/db/db";
 
 const props = defineProps<{
@@ -108,10 +107,9 @@ function handleKeydown(e: KeyboardEvent) {
             :disabled="isSaving || !title.trim()"
             class="flex flex-1 items-center justify-center gap-1 bg-green-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Check class="h-4 w-4" />
             <span>{{ mode === "create" ? "Создать" : "Сохранить" }}</span>
             <kbd
-              class="ml-1 rounded border border-white/30 bg-white/10 px-1 text-[10px] font-normal opacity-80"
+              class="relative top-px ml-1 inline-flex items-center rounded border border-white/30 bg-white/10 px-1 pt-0.5 pb-[0.15em] text-[10px] leading-[1.2] font-normal opacity-80"
               >Ctrl+Enter</kbd
             >
           </button>
@@ -119,10 +117,9 @@ function handleKeydown(e: KeyboardEvent) {
             @click="handleCancel"
             class="flex flex-1 items-center justify-center gap-1 bg-gray-400 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-500"
           >
-            <X class="h-4 w-4" />
             <span>Отмена</span>
             <kbd
-              class="ml-1 rounded border border-white/30 bg-white/10 px-1 text-[10px] font-normal opacity-80"
+              class="relative top-px ml-1 inline-flex items-center rounded border border-white/30 bg-white/10 px-1 pt-0.5 pb-[0.15em] text-[10px] leading-[1.2] font-normal opacity-80"
               >Esc</kbd
             >
           </button>
