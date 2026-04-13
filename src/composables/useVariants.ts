@@ -32,8 +32,8 @@ function shouldIgnoreTarget(target: EventTarget | null): boolean {
  * @example
  * // variants.ts
  * export const { provideAppVariants, useAppVariants } = createVariants({
- *   TaskCard:  { key: "1", variants: [true, false]    as const },
- *   TaskWidth: { key: "2", variants: ["w-32", "w-35"] as const },
+ *   CardCard:  { key: "1", variants: [true, false]    as const },
+ *   CardWidth: { key: "2", variants: ["w-32", "w-35"] as const },
  * });
  *
  * // App.vue — call once in setup()
@@ -41,8 +41,8 @@ function shouldIgnoreTarget(target: EventTarget | null): boolean {
  *
  * // Any descendant component
  * const { variants } = useAppVariants();
- * // variants.TaskCard  → boolean
- * // variants.TaskWidth → "w-32" | "w-35"
+ * // variants.CardCard  → boolean
+ * // variants.CardWidth → "w-32" | "w-35"
  */
 export function createVariants<T extends VariantsSetup>(config: T) {
   // Each createVariants call gets its own unique key —

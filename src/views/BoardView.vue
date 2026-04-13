@@ -4,7 +4,7 @@ import { useBoardStore } from "@/stores/board";
 import BoardTable from "@/components/BoardTable.vue";
 import CardDialog from "@/components/CardDialog.vue";
 import BoardHeader from "@/components/BoardHeader.vue";
-import type { TaskRecord } from "@/db/db";
+import type { CardRecord } from "@/db/db";
 
 const props = defineProps<{ slug: string }>();
 
@@ -14,24 +14,24 @@ async function addWeek(title: string) {
   await boardStore.createWeek(title);
 }
 
-const addTaskWeekId = ref<string | null>(null);
-const addTaskColumn = ref<TaskRecord["column"] | null>(null);
-const addTaskText = ref<string | undefined>(undefined);
+const addCardWeekId = ref<string | null>(null);
+const addCardColumn = ref<CardRecord["column"] | null>(null);
+const addCardText = ref<string | undefined>(undefined);
 
-function openAddTask(weekId: string, column: TaskRecord["column"], text?: string) {
-  addTaskWeekId.value = weekId;
-  addTaskColumn.value = column;
-  addTaskText.value = text;
+function openAddCard(weekId: string, column: CardRecord["column"], text?: string) {
+  addCardWeekId.value = weekId;
+  addCardColumn.value = column;
+  addCardText.value = text;
 }
 
-function closeAddTask() {
-  addTaskWeekId.value = null;
-  addTaskColumn.value = null;
-  addTaskText.value = undefined;
+function closeAddCard() {
+  addCardWeekId.value = null;
+  addCardColumn.value = null;
+  addCardText.value = undefined;
 }
 
-function getTasks(weekId: string, column: TaskRecord["column"]) {
-  return boardStore.getTasksForWeek(weekId, column);
+function getCards(weekId: string, column: CardRecord["column"]) {
+  return boardStore.getCardsForWeek(weekId, column);
 }
 
 async function handleWeekDelete(id: string) {
@@ -64,8 +64,8 @@ watch(
     <!-- Board Table -->
     <BoardTable
       :weeks="boardStore.weeks"
-      :get-tasks="getTasks"
-      @add-task="openAddTask"
+      :get-cards="getCards"
+      @add-card="openAddCard"
       @add-week="addWeek"
       @week-delete="handleWeekDelete"
       @week-complete="handleWeekComplete"
@@ -76,13 +76,13 @@ watch(
     <p class="text-gray-500">Board not found</p>
   </div>
 
-  <!-- Add Task Dialog -->
+  <!-- Add Card Dialog -->
   <CardDialog
-    v-if="addTaskWeekId && addTaskColumn"
-    :week-id="addTaskWeekId"
-    :column="addTaskColumn"
-    :initial-title="addTaskText"
+    v-if="addCardWeekId && addCardColumn"
+    :week-id="addCardWeekId"
+    :column="addCardColumn"
+    :initial-title="addCardText"
     mode="create"
-    @close="closeAddTask"
+    @close="closeAddCard"
   />
 </template>

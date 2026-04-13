@@ -4,28 +4,28 @@ import { useBoardStore } from "@/stores/board";
 import { generatePastelColor } from "@/utils/pastelColor";
 import CardDialog from "@/components/CardDialog.vue";
 import { X } from "@lucide/vue";
-import type { TaskRecord } from "@/db/db";
+import type { CardRecord } from "@/db/db";
 
 import { useAppVariants } from "@/variants.ts";
 import { parseTitle } from "@/utils/card-title.ts";
 const { variants } = useAppVariants();
 
-const props = defineProps<{ task: TaskRecord }>();
+const props = defineProps<{ card: CardRecord }>();
 
 const boardStore = useBoardStore();
 const isEditing = ref(false);
 const isHovered = ref(false);
 
 const colors = computed(() => {
-  const base = generatePastelColor(props.task.title);
+  const base = generatePastelColor(props.card.title);
   return { base, accent: `color-mix(in srgb, ${base}, black 15%)` };
 });
 
-const titleInfo = computed(() => parseTitle(props.task.title));
+const titleInfo = computed(() => parseTitle(props.card.title));
 
 function handleDelete() {
   if (confirm("Удалить?")) {
-    boardStore.deleteTask(props.task.id);
+    boardStore.deleteCard(props.card.id);
   }
 }
 
@@ -41,8 +41,8 @@ function closeEdit() {
 <template>
   <div
     class="group relative flex w-30 flex-col overflow-hidden rounded-[1px] border-0 border-black/10 shadow-sm transition-shadow select-none"
-    :style="{ backgroundColor: colors.base, minHeight: 'var(--task-card-height)' }"
-    :data-task-id="task.id"
+    :style="{ backgroundColor: colors.base, minHeight: 'var(--card-card-height)' }"
+    :data-card-id="card.id"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
     @dblclick="startEdit"
@@ -78,9 +78,9 @@ function closeEdit() {
     <!-- Edit Dialog -->
     <CardDialog
       v-if="isEditing"
-      :week-id="task.weekId"
+      :week-id="card.weekId"
       mode="edit"
-      :task="task"
+      :card="card"
       @close="closeEdit"
     />
   </div>

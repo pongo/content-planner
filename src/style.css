@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --task-card-height: calc(var(--spacing) * 12.5);
+  --card-card-height: calc(var(--spacing) * 12.5);
 }
 
 .skip-ink-none {
