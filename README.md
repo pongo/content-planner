@@ -1,15 +1,19 @@
-# content-planner
+# Контент-планер
 
-An attempt to recreate the discontinued scrumy.com service — a task board for SCRUM/AGILE. Runs entirely in the browser on the client side, storing data in IndexedDB.
+Откройте https://pongo.github.io/content-planner/
 
-## Usage
+1. Добавьте карточки — это ваши темы.
+2. Добавьте неделю и перетаскивайте в нее карточки.
+3. Двойной клик редактирует карточку.
+4. Нажатие ✔️ завершает неделю — карточки возвращаются в список.
 
-Open [https://pongo.github.io/content-planner/](https://pongo.github.io/content-planner/)
+Данные хранятся только в вашем браузере.
 
-1. Create a new board.
-2. Add a story.
-3. The + button adds tasks to a story.
-4. Tasks can be dragged and dropped.
-5. Double-click anywhere to edit a task, rename a board, or rename a story.
+## Фишки
 
-Use the hamburger menu to delete a board or export it as Markdown. To export the entire database, use browser extensions like IDBPort.
+- Если перетащить карточку на ➕ — создастся копия.
+- Если перетащить карточку с зажатым Ctrl — создастся копия.
+- Карточка из нескольких строк разделится пополам, но при завершении недели в список вернется только заголовок карточки.
+- Если карточка начинается на "-", то при завершении недели она будет удалена.
+
+Через гамбургер-меню можно удалить доску или экспортировать ее в Markdown. Для экспорта всей базы используйте браузерные расширения, например, IDBPort.
