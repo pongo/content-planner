@@ -24,7 +24,7 @@ const colors = computed(() => {
 const titleInfo = computed(() => parseTitle(props.task.title));
 
 function handleDelete() {
-  if (confirm("Delete this task?")) {
+  if (confirm("Удалить?")) {
     boardStore.deleteTask(props.task.id);
   }
 }
