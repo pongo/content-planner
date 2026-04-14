@@ -45,7 +45,7 @@ function closeEdit() {
     :data-card-id="card.id"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
-    @dblclick="startEdit"
+    @dblclick.stop="startEdit"
   >
     <div class="relative flex flex-1 flex-col items-center justify-center py-1.25">
       <!-- Delete button on hover -->

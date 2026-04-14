@@ -152,7 +152,7 @@ watch([() => props.weeks, () => boardStore.cards], () => syncCellLists(), {
 
       <!-- Header -->
       <thead>
-        <tr class="bg-white">
+        <tr class="bg-white select-none">
           <th class="border-r border-b border-gray-200 bg-white" />
           <th
             v-for="col in columns"
@@ -207,6 +207,7 @@ watch([() => props.weeks, () => boardStore.cards], () => syncCellLists(), {
             :data-week-id="week.id"
             :data-column="colInfo.key"
             style="height: 1px"
+            @dblclick="emit('addCard', week.id, colInfo.key)"
           >
             <div class="flex h-full flex-col">
               <!-- vue-draggable-plus -->
@@ -232,7 +233,7 @@ watch([() => props.weeks, () => boardStore.cards], () => syncCellLists(), {
               </VueDraggable>
               <div
                 v-if="isBoardEmpty && week.title === 'Categories'"
-                class="absolute inset-0 flex items-center pl-2 text-sm text-gray-400 select-none"
+                class="pointer-events-none absolute inset-0 flex items-center pl-2 text-sm text-gray-400 select-none"
               >
                 ← Добавьте карточку
               </div>
@@ -247,7 +248,7 @@ watch([() => props.weeks, () => boardStore.cards], () => syncCellLists(), {
           <td colspan="8" class="border-r border-b border-gray-200 bg-white last:border-r-0">
             <button
               @click="handleAddWeek"
-              class="skip-ink-none flex w-full items-center justify-center py-3 text-sm text-gray-400 hover:underline"
+              class="skip-ink-none flex w-full items-center justify-center py-3 text-sm text-gray-400 select-none hover:underline"
             >
               Добавить неделю
             </button>
