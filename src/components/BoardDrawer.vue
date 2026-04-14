@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { ref, watch, reactive } from "vue";
+import { ref, watch } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import { Trash2, Share, Check } from "@lucide/vue";
 import { useBoardStore } from "@/stores/board";
 import type { BoardRecord } from "@/db/db";
-import { exportBoardToMarkdown } from "@/utils/exportMarkdown";
+import { useBoardActions } from "@/composables/useBoardActions";
 
 const { open } = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ close: [] }>();
 
 const boardStore = useBoardStore();
 const router = useRouter();
+const { handleExport, deleteBoard, isExported } = useBoardActions();
 
 const boards = ref<BoardRecord[]>([]);
-const exportedBoards = reactive<Record<string, boolean>>({});
 
 watch(
   () => open,
@@ -27,21 +27,11 @@ function navigateToCreate() {
   emit("close");
 }
 
-async function handleExport(board: BoardRecord) {
-  const markdown = await exportBoardToMarkdown(board);
-  await navigator.clipboard.writeText(markdown);
-  exportedBoards[board.id] = true;
-  setTimeout(() => {
-    exportedBoards[board.id] = false;
-  }, 2000);
-}
-
-async function deleteBoard(board: BoardRecord) {
-  if (!confirm(`Delete board "${board.title}"?`)) return;
+async function handleDelete(board: BoardRecord) {
   const isCurrent = boardStore.currentBoard?.id === board.id;
-  const boardsApi = await import("@/db/boards");
-  await boardsApi.deleteBoard(board.id);
-  boards.value = boards.value.filter((b) => b.id !== board.id);
+  await deleteBoard(board, () => {
+    boards.value = boards.value.filter((b) => b.id !== board.id);
+  });
   if (isCurrent) {
     emit("close");
     router.push("/new");
@@ -99,15 +89,15 @@ async function deleteBoard(board: BoardRecord) {
                 <button
                   @click="handleExport(board)"
                   class="shrink-0 rounded p-1 text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-green-50 hover:text-green-600"
-                  :title="exportedBoards[board.id] ? 'Copied!' : 'Export as Markdown'"
+                  :title="isExported(board.id) ? 'Скопировано!' : 'Экспортировать как Markdown'"
                 >
-                  <Check v-if="exportedBoards[board.id]" class="size-4" />
+                  <Check v-if="isExported(board.id)" class="size-4" />
                   <Share v-else class="size-4" />
                 </button>
                 <button
-                  @click="deleteBoard(board)"
+                  @click="handleDelete(board)"
                   class="shrink-0 rounded p-1 text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-50 hover:text-red-600"
-                  title="Delete board"
+                  title="Удалить доску"
                 >
                   <Trash2 class="size-4" />
                 </button>

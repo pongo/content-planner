@@ -6,15 +6,7 @@ const router = createRouter({
     {
       path: "/",
       name: "home",
-      component: { template: "" },
-      beforeEnter: async () => {
-        const boardsApi = await import("@/db/boards");
-        const boards = await boardsApi.getAllBoards();
-        if (boards.length > 0 && boards[0]) {
-          return { name: "board", params: { slug: boards[0].slug } };
-        }
-        return { name: "new-board" };
-      },
+      component: () => import("@/views/BoardsList.vue"),
     },
     {
       path: "/new",
