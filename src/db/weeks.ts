@@ -1,4 +1,4 @@
-import { firstLine } from "@/utils/card-title.ts";
+import { parseTitle } from "@/utils/card-title.ts";
 import { getDB } from "./db";
 import type { WeekRecord } from "./db";
 
@@ -63,9 +63,10 @@ export async function completeWeek(weekId: string, targetWeekId: string): Promis
       continue;
     }
 
+    const { isPermanent, firstLine } = parseTitle(card.title);
     card.weekId = targetWeekId;
     card.column = "ALL";
-    card.title = firstLine(card.title).trim();
+    if (!isPermanent) card.title = firstLine;
     card.order = nextOrder++;
     await cardsStore.put(card);
   }

@@ -6,16 +6,20 @@ export function firstLine(text: string): string {
 }
 
 export function parseTitle(title: string) {
-  const index = title.search(reEOL);
-  return index === -1
-    ? {
-        firstLine: title,
-        remainingLines: "",
-        isMultiline: false,
-      }
-    : {
-        firstLine: title.slice(0, index),
-        remainingLines: title.slice(index + 1).trim(),
-        isMultiline: true,
-      };
+  const lines = title.split(reEOL);
+  const firstLine = lines[0] ?? "";
+  const isPermanent = lines.length > 1 && lines[1]!.trim() === "=";
+
+  let remainingLines = "";
+  if (lines.length > 1) {
+    const startIdx = isPermanent ? 2 : 1;
+    remainingLines = lines.slice(startIdx).join("\n").trim();
+  }
+
+  return {
+    firstLine,
+    remainingLines,
+    isMultiline: lines.length > 1,
+    isPermanent,
+  };
 }
