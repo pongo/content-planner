@@ -28,6 +28,9 @@ describe("card-title utilities", () => {
         isMultiline: true,
         isPermanent: false,
       });
+
+      expect(parseTitle("Line 1\n-Line 2").isMultiline).toBe(true);
+      expect(parseTitle("Line 1\n-").isMultiline).toBe(true);
     });
 
     it("detects permanent card with '=' on second line", () => {
@@ -41,20 +44,17 @@ describe("card-title utilities", () => {
       });
     });
 
-    it("handles permanent card without remaining lines", () => {
-      const title = "Permanent\n=";
-      const result = parseTitle(title);
-      expect(result).toEqual({
-        firstLine: "Permanent",
-        remainingLines: "",
+    it("permanent cards should have remaining lines", () => {
+      expect(parseTitle("Fake permanent\n=")).toEqual({
+        firstLine: "Fake permanent",
+        remainingLines: "=",
         isMultiline: true,
-        isPermanent: true,
+        isPermanent: false,
       });
     });
 
     it("does not detect permanent if '=' is not on second line", () => {
-      const title = "Line 1\nLine 2\n=";
-      const result = parseTitle(title);
+      const result = parseTitle("Line 1\nLine 2\n=");
       expect(result.isPermanent).toBe(false);
       expect(result.remainingLines).toBe("Line 2\n=");
     });

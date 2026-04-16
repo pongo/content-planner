@@ -33,9 +33,8 @@ export function parseTitle(title: string): ParsedTitle {
     };
   }
 
-  const isPermanent = secondLine.trim() === "=";
+  const isPermanent = secondLine.trim() === "=" && restLines.length > 0;
   const remainingLines = (isPermanent ? restLines : [secondLine, ...restLines]).join("\n").trim();
-
   return {
     firstLine,
     remainingLines,
