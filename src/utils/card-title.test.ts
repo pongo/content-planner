@@ -11,8 +11,7 @@ describe("card-title utilities", () => {
 
   describe("parseTitle", () => {
     it("parses single line title", () => {
-      const result = parseTitle("Single Line");
-      expect(result).toEqual({
+      expect(parseTitle("Single Line")).toEqual({
         firstLine: "Single Line",
         remainingLines: "",
         isMultiline: false,
@@ -21,8 +20,7 @@ describe("card-title utilities", () => {
     });
 
     it("parses multiline title", () => {
-      const result = parseTitle("Line 1\nLine 2\nLine 3");
-      expect(result).toEqual({
+      expect(parseTitle("Line 1\nLine 2\nLine 3")).toEqual({
         firstLine: "Line 1",
         remainingLines: "Line 2\nLine 3",
         isMultiline: true,
@@ -34,9 +32,7 @@ describe("card-title utilities", () => {
     });
 
     it("detects permanent card with '=' on second line", () => {
-      const title = "Permanent\n=\nSub 1\nSub 2";
-      const result = parseTitle(title);
-      expect(result).toEqual({
+      expect(parseTitle("Permanent\n=\nSub 1\nSub 2")).toEqual({
         firstLine: "Permanent",
         remainingLines: "Sub 1\nSub 2",
         isMultiline: true,
@@ -54,9 +50,12 @@ describe("card-title utilities", () => {
     });
 
     it("does not detect permanent if '=' is not on second line", () => {
-      const result = parseTitle("Line 1\nLine 2\n=");
-      expect(result.isPermanent).toBe(false);
-      expect(result.remainingLines).toBe("Line 2\n=");
+      expect(parseTitle("Line 1\nLine 2\n=")).toEqual({
+        firstLine: "Line 1",
+        remainingLines: "Line 2\n=",
+        isMultiline: true,
+        isPermanent: false,
+      });
     });
   });
 });
