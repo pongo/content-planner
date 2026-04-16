@@ -5,12 +5,21 @@ export function firstLine(text: string): string {
   return i === -1 ? text : text.slice(0, i);
 }
 
-export type ParsedTitle = {
+export type SingleLineTitle = {
+  firstLine: string;
+  remainingLines: "";
+  isMultiline: false;
+  isPermanent: false;
+};
+
+export type MultiLineTitle = {
   firstLine: string;
   remainingLines: string;
-  isMultiline: boolean;
+  isMultiline: true;
   isPermanent: boolean;
 };
+
+export type ParsedTitle = SingleLineTitle | MultiLineTitle;
 
 export function parseTitle(title: string): ParsedTitle {
   const [firstLine = "", secondLine, ...restLines] = title.split(reEOL);
