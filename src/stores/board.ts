@@ -43,14 +43,9 @@ export const useBoardStore = defineStore("board", () => {
 
   async function loadAllCardsForBoard(boardId: string): Promise<CardRecord[]> {
     const weeksList = await weeksApi.getWeeksByBoard(boardId);
-    const allCards: CardRecord[] = [];
     // Load cards for all weeks in parallel
     const cardPromises = weeksList.map((week) => cardsApi.getCardsByWeek(week.id));
-    const results = await Promise.all(cardPromises);
-    for (const result of results) {
-      allCards.push(...result);
-    }
-    return allCards;
+    return (await Promise.all(cardPromises)).flat();
   }
 
   async function createBoard(title: string): Promise<string> {
