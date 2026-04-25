@@ -1,9 +1,6 @@
-import type { BoardRecord } from "@/db/db";
-import { getAllCards } from "@/db/cards";
+import type { BoardRecord, CardRecord } from "@/db/db";
 
-export async function exportBoardToMarkdown(board: BoardRecord): Promise<string> {
-  const cards = await getAllCards();
-
+export function exportBoardToMarkdown(board: BoardRecord, cards: CardRecord[]): string {
   const lines: string[] = [];
   lines.push(`# ${board.title}`);
   lines.push("");
