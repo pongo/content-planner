@@ -1,17 +1,19 @@
 import { reactive } from "vue";
-import type { BoardRecord } from "@/db/db";
+import type { BoardRecord, CardRecord } from "@/db/db";
 import { exportBoardToMarkdown } from "@/utils/exportMarkdown";
 import * as boardsApi from "@/db/boards";
-import { useBoardStore } from "@/stores/board.ts";
+import * as weeksApi from "@/db/weeks.ts";
+import * as cardsApi from "@/db/cards";
 
 const exportedBoards = reactive<Record<string, boolean>>({});
 
 export function useBoardActions() {
   async function handleExport(board: BoardRecord) {
-    const boardStore = useBoardStore();
-    await boardStore.loadBoard(board.slug);
-    const markdown = exportBoardToMarkdown(board, boardStore.cards);
+    const cards = await loadAllCardsForBoard(board.id);
+    const markdown = exportBoardToMarkdown(board, cards);
+
     await navigator.clipboard.writeText(markdown);
+
     exportedBoards[board.id] = true;
     setTimeout(() => {
       exportedBoards[board.id] = false;
@@ -29,4 +31,16 @@ export function useBoardActions() {
   }
 
   return { handleExport, deleteBoard, isExported };
+}
+
+async function loadAllCardsForBoard(boardId: string): Promise<CardRecord[]> {
+  const weeksList = await weeksApi.getWeeksByBoard(boardId);
+  const allCards: CardRecord[] = [];
+  // Load cards for all weeks in parallel
+  const cardPromises = weeksList.map((week) => cardsApi.getCardsByWeek(week.id));
+  const results = await Promise.all(cardPromises);
+  for (const result of results) {
+    allCards.push(...result);
+  }
+  return allCards;
 }
