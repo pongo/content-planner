@@ -53,7 +53,7 @@ function closeEdit() {
         v-show="isHovered"
         @click.stop="handleDelete"
         class="absolute top-0 right-0 rounded p-0.5 text-gray-400 hover:text-red-500"
-        title="Delete"
+        title="Удалить"
       >
         <X class="h-2.5 w-3" />
       </button>
