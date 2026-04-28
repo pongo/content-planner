@@ -17,17 +17,6 @@ export async function createWeek(week: Omit<WeekRecord, "order">): Promise<strin
   return record.id;
 }
 
-export async function updateWeek(
-  id: string,
-  updates: Partial<Omit<WeekRecord, "id" | "boardId">>,
-): Promise<void> {
-  const db = await getDB();
-  const week = await db.get("weeks", id);
-  if (!week) throw new Error(`Week ${id} not found`);
-  Object.assign(week, updates);
-  await db.put("weeks", week);
-}
-
 export async function deleteWeek(id: string): Promise<void> {
   const db = await getDB();
   const tx = db.transaction(["weeks", "cards"], "readwrite");
