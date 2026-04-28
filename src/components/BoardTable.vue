@@ -4,7 +4,7 @@ import { VueDraggable, type DraggableEvent } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
 import Card from "@/components/Card.vue";
 import { Plus, Check } from "@lucide/vue";
-import { firstLine } from "@/utils/card-title";
+import { getFirstLine } from "@/utils/card-title";
 import type { CardRecord, WeekRecord } from "@/db/db";
 
 const props = defineProps<{
@@ -51,7 +51,7 @@ async function handleDragEnd(e: DraggableEvent, weekId: string, column: CardReco
   // Ctrl+drop: copy mode — original stays, dialog opens with first line
   if (dragged && getOriginalEvent(e)?.ctrlKey) {
     syncCellLists();
-    emit("addCard", targetWeekId, targetCol, firstLine(dragged.title));
+    emit("addCard", targetWeekId, targetCol, getFirstLine(dragged.title));
     return;
   }
 

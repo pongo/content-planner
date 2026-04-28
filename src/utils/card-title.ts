@@ -1,6 +1,6 @@
 const reEOL = /\r?\n/;
 
-export function firstLine(text: string): string {
+export function getFirstLine(text: string): string {
   const i = text.search(reEOL);
   return i === -1 ? text : text.slice(0, i);
 }

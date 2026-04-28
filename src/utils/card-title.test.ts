@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { parseTitle, firstLine } from "./card-title";
+import { parseTitle, getFirstLine } from "./card-title";
 
 describe("card-title utilities", () => {
   describe("firstLine", () => {
     it("returns the first line of text", () => {
-      expect(firstLine("Line 1\nLine 2")).toBe("Line 1");
-      expect(firstLine("Single Line")).toBe("Single Line");
+      expect(getFirstLine("Line 1\nLine 2")).toBe("Line 1");
+      expect(getFirstLine("Single Line")).toBe("Single Line");
     });
   });
 
