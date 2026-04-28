@@ -14,6 +14,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   addCard: [weekId: string, column: CardRecord["column"], text?: string];
+  addCardWithSelector: [weekId: string, column: CardRecord["column"]];
   addWeek: [title: string];
   weekDelete: [id: string];
   weekComplete: [id: string];
@@ -203,7 +204,8 @@ onUnmounted(() => {
             :data-week-id="week.id"
             :data-column="colInfo.key"
             style="height: 1px"
-            @dblclick="emit('addCard', week.id, colInfo.key)"
+            @dblclick.exact="emit('addCard', week.id, colInfo.key)"
+            @dblclick.ctrl="emit('addCardWithSelector', week.id, colInfo.key)"
           >
             <div class="flex h-full flex-col">
               <!-- vue-draggable-plus -->
@@ -290,6 +292,10 @@ tbody td:has(.sortable-ghost) {
 
 /* firefox */
 @-moz-document url-prefix() {
+  table {
+    -moz-user-select: none;
+    user-select: none;
+  }
   tr.week {
     height: 1px;
   }
