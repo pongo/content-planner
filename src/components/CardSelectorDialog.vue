@@ -92,13 +92,21 @@ function handleOverlayClick() {
             :disabled="!selectedTitle"
             class="flex flex-1 items-center justify-center gap-1 bg-green-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Выбрать
+            <span>Выбрать</span
+            ><kbd
+              class="relative top-px ml-1 inline-flex items-center rounded border border-white/30 bg-white/10 px-1 pt-0.5 pb-[0.15em] text-[10px] leading-[1.2] font-normal opacity-80"
+              >Enter</kbd
+            >
           </button>
           <button
             @click="handleCancel"
             class="flex flex-1 items-center justify-center gap-1 bg-gray-400 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-500"
           >
-            Отмена
+            <span>Отмена</span>
+            <kbd
+              class="relative top-px ml-1 inline-flex items-center rounded border border-white/30 bg-white/10 px-1 pt-0.5 pb-[0.15em] text-[10px] leading-[1.2] font-normal opacity-80"
+              >Esc</kbd
+            >
           </button>
         </div>
       </div>
