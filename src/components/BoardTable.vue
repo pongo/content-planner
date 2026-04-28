@@ -292,6 +292,10 @@ tbody td:has(.sortable-ghost) {
 
 /* firefox */
 @-moz-document url-prefix() {
+  table {
+    -moz-user-select: none;
+    user-select: none;
+  }
   tr.week {
     height: 1px;
   }

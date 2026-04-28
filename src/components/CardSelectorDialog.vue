@@ -74,12 +74,13 @@ function handleOverlayClick() {
         @mousedown.stop
       >
         <div class="p-4">
-          <label class="mb-2 block text-sm font-medium text-gray-700">Выберите заголовок</label>
+          <label class="mb-2 block text-sm font-semibold text-gray-700">Выберите заголовок</label>
           <select
             ref="selectRef"
             v-model="selectedTitle"
-            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 outline-none focus:border-gray-800"
-            size="10"
+            class="max-h-[80vh] w-full overflow-auto overflow-x-hidden rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 outline-none focus:border-gray-800"
+            :size="titles.length"
+            :disabled="titles.length === 0"
             @keydown="handleKeydown"
             @dblclick="handleConfirm"
           >
@@ -89,7 +90,7 @@ function handleOverlayClick() {
           </select>
         </div>
 
-        <div class="flex border-t border-gray-200">
+        <div class="flex border-t border-gray-200/60">
           <button
             @click="handleConfirm"
             :disabled="!selectedTitle"
