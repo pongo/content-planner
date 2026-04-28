@@ -43,7 +43,7 @@ export interface ContentPlannerDB extends DBSchema {
 const DB_NAME = "content-planner";
 const DB_VERSION = 1;
 
-export async function initDB() {
+async function initDB() {
   return openDB<ContentPlannerDB>(DB_NAME, DB_VERSION, {
     async upgrade(db) {
       // Boards store

@@ -21,7 +21,6 @@
   },
   "dependencies": {
     "@lucide/vue": "^1.7.0",
-    "@tailwindcss/vite": "^4.2.2",
     "color-hash": "^2.0.2",
     "idb": "^8.0.3",
     "pinia": "^3.0.4",
@@ -32,6 +31,7 @@
     "vue-router": "^5.0.4"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.2.2",
     "@tsconfig/node24": "^24.0.4",
     "@types/color-hash": "^2.0.0",
     "@types/jsdom": "^28.0.1",
@@ -54,7 +54,6 @@
     "simple-git-hooks": "^2.13.1",
     "typescript": "~6.0.2",
     "vite": "^8.0.3",
-    "vite-plugin-vue-devtools": "^8.1.1",
     "vitest": "^4.1.2",
     "vue-tsc": "^3.2.6"
   },

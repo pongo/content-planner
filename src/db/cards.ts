@@ -14,11 +14,6 @@ export async function getCardsByWeek(weekId: string, column?: CardColumn): Promi
   return result.toSorted((a, b) => a.title.localeCompare(b.title));
 }
 
-export async function getAllCards(): Promise<CardRecord[]> {
-  const db = await getDB();
-  return db.getAll("cards");
-}
-
 export async function createCard(card: Omit<CardRecord, "order">): Promise<string> {
   const db = await getDB();
   const existing = await getCardsByWeek(card.weekId, card.column);

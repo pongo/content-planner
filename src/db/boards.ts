@@ -6,11 +6,6 @@ export async function getAllBoards(): Promise<BoardRecord[]> {
   return db.getAll("boards");
 }
 
-export async function getBoard(id: string): Promise<BoardRecord | undefined> {
-  const db = await getDB();
-  return db.get("boards", id);
-}
-
 export async function getBoardBySlug(slug: string): Promise<BoardRecord | undefined> {
   const db = await getDB();
   return db.getFromIndex("boards", "by-slug", slug);
