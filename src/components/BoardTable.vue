@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { VueDraggable, type DraggableEvent } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
 import Card from "@/components/Card.vue";
@@ -126,6 +126,21 @@ watch([() => props.weeks, () => boardStore.cards], () => syncCellLists(), {
   deep: true,
   immediate: true,
 });
+
+function handleDragover(e: DragEvent) {
+  if (e.dataTransfer && e.ctrlKey) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+  }
+}
+
+onMounted(() => {
+  document.addEventListener("dragover", handleDragover);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("dragover", handleDragover);
+});
 </script>
 
 <template>
@@ -203,6 +218,12 @@ watch([() => props.weeks, () => boardStore.cards], () => syncCellLists(), {
                 chosen-class="sortable-chosen"
                 fallback-class="sortable-fallback"
                 :fallback-tolerance="3"
+                :set-data="
+                  (dt) => {
+                    dt.effectAllowed = 'copyMove';
+                  }
+                "
+                :dragover-bubble="true"
                 @start="(e) => handleDragStart(e)"
                 @end="(e) => handleDragEnd(e, week.id, colInfo.key)"
               >
