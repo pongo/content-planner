@@ -5,6 +5,7 @@ import * as boardsApi from "@/db/boards";
 import * as weeksApi from "@/db/weeks.ts";
 import * as cardsApi from "@/db/cards";
 import { generateUniqueSlug } from "@/utils/slug";
+import { parseTitle } from "@/utils/card-title";
 
 const COLUMNS: CardRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -15,6 +16,22 @@ export const useBoardStore = defineStore("board", () => {
   const loading = ref(false);
 
   const columns = computed(() => COLUMNS);
+
+  const duplicateFirstLines = computed(() => {
+    const counts = new Map<string, number>();
+    for (const card of cards.value) {
+      if (card.title.startsWith("-")) continue;
+      const { firstLine } = parseTitle(card.title);
+      if (!firstLine) continue;
+      counts.set(firstLine, (counts.get(firstLine) || 0) + 1);
+    }
+
+    const duplicates = new Set<string>();
+    for (const [line, count] of counts) {
+      if (count > 1) duplicates.add(line);
+    }
+    return duplicates;
+  });
 
   function getCardsForWeek(weekId: string, column: CardRecord["column"]) {
     return cards.value
@@ -229,6 +246,7 @@ export const useBoardStore = defineStore("board", () => {
     cards,
     loading,
     columns,
+    duplicateFirstLines,
     getCardsForWeek,
     loadBoard,
     createBoard,

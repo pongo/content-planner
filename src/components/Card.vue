@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import { useBoardStore } from "@/stores/board";
 import { generatePastelColor } from "@/utils/pastelColor";
 import CardDialog from "@/components/CardDialog.vue";
-import { X } from "@lucide/vue";
+import { X, Copy } from "@lucide/vue";
 import type { CardRecord } from "@/db/db";
 import { parseTitle } from "@/utils/card-title.ts";
 
@@ -22,6 +22,11 @@ const colors = computed(() => {
 });
 
 const titleInfo = computed(() => parseTitle(props.card.title));
+
+const isDuplicate = computed(() => {
+  if (props.card.title.startsWith("-")) return false;
+  return boardStore.duplicateFirstLines.has(titleInfo.value.firstLine);
+});
 
 function handleDelete() {
   if (confirm("Удалить?")) {
@@ -57,6 +62,15 @@ function closeEdit() {
       >
         <X class="h-2.5 w-3" />
       </button>
+
+      <!-- Duplicate icon -->
+      <div
+        v-if="isDuplicate"
+        class="absolute top-0.5 left-1 text-gray-500/50"
+        title="У карточки есть дубликат"
+      >
+        <Copy class="h-2.5 w-2.5" />
+      </div>
 
       <!-- Title -->
       <div class="w-full text-center">
