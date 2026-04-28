@@ -44,19 +44,24 @@ async function handleSave() {
 
   isSaving.value = true;
   try {
-    if (props.mode === "create") {
-      if (!props.column) throw new Error("Column is required for creation");
-      await boardStore.createCard(props.weekId, trimmed, props.column);
-    } else if (props.card) {
-      await boardStore.updateCard(props.card.id, {
-        title: trimmed,
-      });
-    }
+    await trySave(trimmed);
     emit("close");
   } catch (e) {
     console.error("Failed to save card:", e);
   } finally {
     isSaving.value = false;
+  }
+}
+
+async function trySave(trimmedTitle: string) {
+  if (props.mode === "create") {
+    if (!props.column) throw new Error("Column is required for creation");
+    await boardStore.createCard(props.weekId, trimmedTitle, props.column);
+    return;
+  }
+
+  if (props.card) {
+    await boardStore.updateCard(props.card.id, { title: trimmedTitle });
   }
 }
 

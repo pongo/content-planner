@@ -146,12 +146,12 @@ export const useBoardStore = defineStore("board", () => {
   ): Promise<void> {
     await cardsApi.updateCard(cardId, updates);
     const card = cards.value.find((t) => t.id === cardId);
-    if (card) {
-      if (updates.title !== undefined) card.title = updates.title;
-      if (updates.weekId !== undefined) card.weekId = updates.weekId;
-      if (updates.column !== undefined) card.column = updates.column;
-      if (updates.order !== undefined) card.order = updates.order;
-    }
+    if (!card) return;
+
+    if (updates.title !== undefined) card.title = updates.title;
+    if (updates.weekId !== undefined) card.weekId = updates.weekId;
+    if (updates.column !== undefined) card.column = updates.column;
+    if (updates.order !== undefined) card.order = updates.order;
   }
 
   async function deleteCard(cardId: string): Promise<void> {

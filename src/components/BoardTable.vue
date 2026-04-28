@@ -45,37 +45,40 @@ async function handleDragEnd(e: DraggableEvent, weekId: string, column: CardReco
   const dragged = draggedCard.value;
   draggedCard.value = null;
 
-  const sourceKey = cellKey(weekId, column);
-  const sourceCards = cellLists.value[sourceKey] ?? [];
-
-  const targetTd = e.to.closest("td[data-week-id]") as HTMLTableCellElement | null;
-  const targetWeekId = targetTd?.dataset.weekId;
-  const targetCol = targetTd?.dataset.column as CardRecord["column"] | undefined;
-
+  const { targetWeekId, targetCol } = getDragEndTargets(e);
   if (!targetWeekId || !targetCol) return;
 
   // Ctrl+drop: copy mode — original stays, dialog opens with first line
-  if ((e as unknown as { originalEvent?: MouseEvent }).originalEvent?.ctrlKey && dragged) {
+  if (dragged && getOriginalEvent(e)?.ctrlKey) {
     syncCellLists();
     emit("addCard", targetWeekId, targetCol, firstLine(dragged.title));
     return;
   }
 
+  const sourceKey = cellKey(weekId, column);
+  const sourceCards = cellLists.value[sourceKey] ?? [];
   const targetKey = cellKey(targetWeekId, targetCol);
 
+  // Move within the same cell
   if (e.to === e.from) {
     await boardStore.saveCell(weekId, column, sourceCards);
-  } else {
-    const targetCards = cellLists.value[targetKey] ?? [];
-    await boardStore.saveBothCells(
-      weekId,
-      column,
-      sourceCards,
-      targetWeekId,
-      targetCol,
-      targetCards,
-    );
+    return;
   }
+
+  // Move to another cell
+  const targetCards = cellLists.value[targetKey] ?? [];
+  await boardStore.saveBothCells(weekId, column, sourceCards, targetWeekId, targetCol, targetCards);
+}
+
+function getOriginalEvent(e: DraggableEvent) {
+  return (e as unknown as { originalEvent?: MouseEvent }).originalEvent;
+}
+
+function getDragEndTargets(e: DraggableEvent) {
+  const targetTd = e.to.closest("td[data-week-id]") as HTMLTableCellElement | null;
+  const targetWeekId = targetTd?.dataset.weekId;
+  const targetCol = targetTd?.dataset.column as CardRecord["column"] | undefined;
+  return { targetWeekId, targetCol };
 }
 
 function handleDragStart(e: DraggableEvent) {
