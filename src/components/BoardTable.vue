@@ -39,21 +39,11 @@ function cellKey(weekId: string, column: CardRecord["column"]) {
   return `${weekId}:${column}`;
 }
 
-const dragOverKey = ref<string | null>(null);
 const draggedCard = ref<CardRecord | null>(null);
-const dragOverAddBtn = ref(false);
-const droppedOnAddBtn = ref(false);
 
 async function handleDragEnd(e: DraggableEvent, weekId: string, column: CardRecord["column"]) {
-  dragOverKey.value = null;
   const dragged = draggedCard.value;
   draggedCard.value = null;
-
-  if (droppedOnAddBtn.value) {
-    droppedOnAddBtn.value = false;
-    syncCellLists();
-    return;
-  }
 
   const sourceKey = cellKey(weekId, column);
   const sourceCards = cellLists.value[sourceKey] ?? [];
@@ -93,13 +83,6 @@ function handleDragStart(e: DraggableEvent) {
   if (cardId) {
     draggedCard.value = boardStore.cards.find((t) => t.id === cardId) ?? null;
   }
-}
-
-function handleDropOnAdd(weekId: string) {
-  const text = draggedCard.value ? firstLine(draggedCard.value.title) : undefined;
-  emit("addCard", weekId, "ALL", text);
-  dragOverAddBtn.value = false;
-  droppedOnAddBtn.value = true;
 }
 
 function getWeekColumns(week: WeekRecord): { key: CardRecord["column"]; colspan?: number }[] {
@@ -174,13 +157,8 @@ watch([() => props.weeks, () => boardStore.cards], () => syncCellLists(), {
             <button
               v-if="week.title === 'Categories'"
               class="group flex h-full w-full items-center justify-center text-gray-400 transition-colors"
-              :class="{ 'sortable-dragover': dragOverAddBtn }"
               title="Добавить карточку"
               @click="emit('addCard', week.id, 'ALL')"
-              @dragover.prevent
-              @drop.prevent="handleDropOnAdd(week.id)"
-              @dragenter="dragOverAddBtn = true"
-              @dragleave="dragOverAddBtn = false"
             >
               <Plus
                 class="h-6 w-6 rounded p-1 transition-colors group-hover:bg-gray-100 group-hover:text-gray-600"
@@ -222,8 +200,8 @@ watch([() => props.weeks, () => boardStore.cards], () => syncCellLists(), {
                 chosen-class="sortable-chosen"
                 fallback-class="sortable-fallback"
                 :fallback-tolerance="3"
-                @start="(e: any) => handleDragStart(e)"
-                @end="(e: any) => handleDragEnd(e, week.id, colInfo.key)"
+                @start="(e) => handleDragStart(e)"
+                @end="(e) => handleDragEnd(e, week.id, colInfo.key)"
               >
                 <Card
                   v-for="card in cellLists[cellKey(week.id, colInfo.key)]"
