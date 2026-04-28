@@ -12,15 +12,18 @@ const selectedTitle = ref("");
 const selectRef = ref<HTMLSelectElement | null>(null);
 
 const titles = computed(() => {
-  return Array.from(boardStore.cardsFirstLineCounts.keys()).sort((a, b) =>
-    a.localeCompare(b, undefined, { sensitivity: "base" }),
-  );
+  const result: { title: string; count: number }[] = [];
+  for (const [title, count] of boardStore.cardsFirstLineCounts.entries()) {
+    result.push({ title, count });
+  }
+  result.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
+  return result;
 });
 
 onMounted(() => {
   const first = titles.value[0];
   if (first) {
-    selectedTitle.value = first;
+    selectedTitle.value = first.title;
   }
   selectRef.value?.focus();
 });
@@ -80,8 +83,8 @@ function handleOverlayClick() {
             @keydown="handleKeydown"
             @dblclick="handleConfirm"
           >
-            <option v-for="title in titles" :key="title" :value="title">
-              {{ title }}
+            <option v-for="{ title, count } in titles" :key="title" :value="title">
+              {{ title }} {{ count > 1 ? `(${count})` : "" }}
             </option>
           </select>
         </div>
