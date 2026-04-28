@@ -17,17 +17,22 @@ export const useBoardStore = defineStore("board", () => {
 
   const columns = computed(() => COLUMNS);
 
-  const duplicateFirstLines = computed(() => {
+  const cardsFirstLineCounts = computed(() => {
     const counts = new Map<string, number>();
     for (const card of cards.value) {
       if (card.title.startsWith("-")) continue;
+
       const firstLine = getFirstLine(card.title);
       if (!firstLine) continue;
+
       counts.set(firstLine, (counts.get(firstLine) || 0) + 1);
     }
+    return counts;
+  });
 
+  const duplicateFirstLines = computed(() => {
     const duplicates = new Set<string>();
-    for (const [line, count] of counts) {
+    for (const [line, count] of cardsFirstLineCounts.value) {
       if (count > 1) duplicates.add(line);
     }
     return duplicates;
@@ -246,6 +251,7 @@ export const useBoardStore = defineStore("board", () => {
     cards,
     loading,
     columns,
+    cardsFirstLineCounts,
     duplicateFirstLines,
     getCardsForWeek,
     loadBoard,
