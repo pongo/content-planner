@@ -3,6 +3,7 @@ import { ref, watch } from "vue";
 import { useBoardStore } from "@/stores/board";
 import BoardTable from "@/components/BoardTable.vue";
 import CardDialog from "@/components/CardDialog.vue";
+import CardSelectorDialog from "@/components/CardSelectorDialog.vue";
 import BoardHeader from "@/components/BoardHeader.vue";
 import type { CardRecord } from "@/db/db";
 
@@ -28,6 +29,26 @@ function closeAddCard() {
   addCardWeekId.value = null;
   addCardColumn.value = null;
   addCardText.value = undefined;
+}
+
+const selectorWeekId = ref<string | null>(null);
+const selectorColumn = ref<CardRecord["column"] | null>(null);
+
+function openSelector(weekId: string, column: CardRecord["column"]) {
+  selectorWeekId.value = weekId;
+  selectorColumn.value = column;
+}
+
+function handleSelectorSelect(title: string) {
+  if (selectorWeekId.value && selectorColumn.value) {
+    openAddCard(selectorWeekId.value, selectorColumn.value, title);
+  }
+  closeSelector();
+}
+
+function closeSelector() {
+  selectorWeekId.value = null;
+  selectorColumn.value = null;
 }
 
 function getCards(weekId: string, column: CardRecord["column"]) {
@@ -66,6 +87,7 @@ watch(
       :weeks="boardStore.weeks"
       :get-cards="getCards"
       @add-card="openAddCard"
+      @add-card-with-selector="openSelector"
       @add-week="addWeek"
       @week-delete="handleWeekDelete"
       @week-complete="handleWeekComplete"
@@ -75,6 +97,13 @@ watch(
   <div v-else class="flex min-h-screen items-center justify-center">
     <p class="text-gray-500">Board not found</p>
   </div>
+
+  <!-- Select Card Title Dialog -->
+  <CardSelectorDialog
+    v-if="selectorWeekId && selectorColumn"
+    @select="handleSelectorSelect"
+    @close="closeSelector"
+  />
 
   <!-- Add Card Dialog -->
   <CardDialog

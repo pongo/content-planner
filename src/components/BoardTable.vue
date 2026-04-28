@@ -3,7 +3,6 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { VueDraggable, type DraggableEvent } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
 import Card from "@/components/Card.vue";
-import CardSelectorDialog from "@/components/CardSelectorDialog.vue";
 import { Plus, Check } from "@lucide/vue";
 import { getFirstLine } from "@/utils/card-title";
 import type { CardRecord, WeekRecord } from "@/db/db";
@@ -15,6 +14,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   addCard: [weekId: string, column: CardRecord["column"], text?: string];
+  addCardWithSelector: [weekId: string, column: CardRecord["column"]];
   addWeek: [title: string];
   weekDelete: [id: string];
   weekComplete: [id: string];
@@ -135,29 +135,6 @@ function handleDragover(e: DragEvent) {
   }
 }
 
-const selectorDialogVisible = ref(false);
-const selectorWeekId = ref<string | null>(null);
-const selectorColumn = ref<CardRecord["column"] | null>(null);
-
-function openSelector(weekId: string, column: CardRecord["column"]) {
-  selectorWeekId.value = weekId;
-  selectorColumn.value = column;
-  selectorDialogVisible.value = true;
-}
-
-function handleSelectorSelect(title: string) {
-  if (selectorWeekId.value && selectorColumn.value) {
-    emit("addCard", selectorWeekId.value, selectorColumn.value, title);
-  }
-  closeSelector();
-}
-
-function closeSelector() {
-  selectorDialogVisible.value = false;
-  selectorWeekId.value = null;
-  selectorColumn.value = null;
-}
-
 onMounted(() => {
   document.addEventListener("dragover", handleDragover);
 });
@@ -228,7 +205,7 @@ onUnmounted(() => {
             :data-column="colInfo.key"
             style="height: 1px"
             @dblclick.exact="emit('addCard', week.id, colInfo.key)"
-            @dblclick.ctrl="openSelector(week.id, colInfo.key)"
+            @dblclick.ctrl="emit('addCardWithSelector', week.id, colInfo.key)"
           >
             <div class="flex h-full flex-col">
               <!-- vue-draggable-plus -->
@@ -283,12 +260,6 @@ onUnmounted(() => {
         </tr>
       </tfoot>
     </table>
-
-    <CardSelectorDialog
-      v-if="selectorDialogVisible"
-      @select="handleSelectorSelect"
-      @close="closeSelector"
-    />
   </div>
 </template>
 
