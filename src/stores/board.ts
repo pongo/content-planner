@@ -5,7 +5,7 @@ import * as boardsApi from "@/db/boards";
 import * as weeksApi from "@/db/weeks.ts";
 import * as cardsApi from "@/db/cards";
 import { generateUniqueSlug } from "@/utils/slug";
-import { parseTitle } from "@/utils/card-title";
+import { getFirstLine } from "@/utils/card-title";
 
 const COLUMNS: CardRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -21,7 +21,7 @@ export const useBoardStore = defineStore("board", () => {
     const counts = new Map<string, number>();
     for (const card of cards.value) {
       if (card.title.startsWith("-")) continue;
-      const { firstLine } = parseTitle(card.title);
+      const firstLine = getFirstLine(card.title);
       if (!firstLine) continue;
       counts.set(firstLine, (counts.get(firstLine) || 0) + 1);
     }
