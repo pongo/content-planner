@@ -1,0 +1,107 @@
+<script setup lang="ts">
+import { ref, onMounted, computed } from "vue";
+import { useBoardStore } from "@/stores/board";
+
+const emit = defineEmits<{
+  select: [title: string];
+  close: [];
+}>();
+
+const boardStore = useBoardStore();
+const selectedTitle = ref("");
+const selectRef = ref<HTMLSelectElement | null>(null);
+
+const titles = computed(() => {
+  return Array.from(boardStore.cardsFirstLineCounts.keys()).sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" }),
+  );
+});
+
+onMounted(() => {
+  const first = titles.value[0];
+  if (first) {
+    selectedTitle.value = first;
+  }
+  selectRef.value?.focus();
+});
+
+function handleConfirm() {
+  if (selectedTitle.value) {
+    emit("select", selectedTitle.value);
+  }
+}
+
+function handleCancel() {
+  emit("close");
+}
+
+function handleKeydown(e: KeyboardEvent) {
+  if (e.key === "Escape") {
+    e.preventDefault();
+    handleCancel();
+  } else if (e.key === "Enter") {
+    e.preventDefault();
+    handleConfirm();
+  }
+}
+
+const overlayMousedown = ref(false);
+
+function handleOverlayMousedown() {
+  overlayMousedown.value = true;
+}
+
+function handleOverlayClick() {
+  if (!overlayMousedown.value) return;
+  overlayMousedown.value = false;
+  handleCancel();
+}
+</script>
+
+<template>
+  <Teleport to="body">
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
+      @mousedown="handleOverlayMousedown"
+      @click="handleOverlayClick"
+    >
+      <div
+        class="w-full max-w-sm rounded border-2 border-gray-800 bg-white p-0 shadow-xl"
+        @click.stop
+        @mousedown.stop
+      >
+        <div class="p-4">
+          <label class="mb-2 block text-sm font-medium text-gray-700">Выберите заголовок</label>
+          <select
+            ref="selectRef"
+            v-model="selectedTitle"
+            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 outline-none focus:border-gray-800"
+            size="10"
+            @keydown="handleKeydown"
+            @dblclick="handleConfirm"
+          >
+            <option v-for="title in titles" :key="title" :value="title">
+              {{ title }}
+            </option>
+          </select>
+        </div>
+
+        <div class="flex border-t border-gray-200">
+          <button
+            @click="handleConfirm"
+            :disabled="!selectedTitle"
+            class="flex flex-1 items-center justify-center gap-1 bg-green-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Выбрать
+          </button>
+          <button
+            @click="handleCancel"
+            class="flex flex-1 items-center justify-center gap-1 bg-gray-400 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-500"
+          >
+            Отмена
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+</template>

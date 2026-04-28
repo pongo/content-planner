@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { VueDraggable, type DraggableEvent } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
 import Card from "@/components/Card.vue";
+import CardSelectorDialog from "@/components/CardSelectorDialog.vue";
 import { Plus, Check } from "@lucide/vue";
 import { getFirstLine } from "@/utils/card-title";
 import type { CardRecord, WeekRecord } from "@/db/db";
@@ -134,6 +135,29 @@ function handleDragover(e: DragEvent) {
   }
 }
 
+const selectorDialogVisible = ref(false);
+const selectorWeekId = ref<string | null>(null);
+const selectorColumn = ref<CardRecord["column"] | null>(null);
+
+function openSelector(weekId: string, column: CardRecord["column"]) {
+  selectorWeekId.value = weekId;
+  selectorColumn.value = column;
+  selectorDialogVisible.value = true;
+}
+
+function handleSelectorSelect(title: string) {
+  if (selectorWeekId.value && selectorColumn.value) {
+    emit("addCard", selectorWeekId.value, selectorColumn.value, title);
+  }
+  closeSelector();
+}
+
+function closeSelector() {
+  selectorDialogVisible.value = false;
+  selectorWeekId.value = null;
+  selectorColumn.value = null;
+}
+
 onMounted(() => {
   document.addEventListener("dragover", handleDragover);
 });
@@ -203,7 +227,8 @@ onUnmounted(() => {
             :data-week-id="week.id"
             :data-column="colInfo.key"
             style="height: 1px"
-            @dblclick="emit('addCard', week.id, colInfo.key)"
+            @dblclick.exact="emit('addCard', week.id, colInfo.key)"
+            @dblclick.ctrl="openSelector(week.id, colInfo.key)"
           >
             <div class="flex h-full flex-col">
               <!-- vue-draggable-plus -->
@@ -258,6 +283,12 @@ onUnmounted(() => {
         </tr>
       </tfoot>
     </table>
+
+    <CardSelectorDialog
+      v-if="selectorDialogVisible"
+      @select="handleSelectorSelect"
+      @close="closeSelector"
+    />
   </div>
 </template>
 
