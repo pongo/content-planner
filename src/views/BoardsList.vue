@@ -33,21 +33,28 @@ async function handleDelete(board: BoardRecord) {
     <div v-if="!loading" class="w-full max-w-2xl p-4">
       <h1 class="mb-8 text-center text-3xl font-bold text-gray-800">Content-planner</h1>
 
-      <div v-if="boards.length > 0" class="rounded-lg border border-gray-200 bg-white shadow-sm">
+      <div
+        v-if="boards.length > 0"
+        data-testid="boards-list"
+        class="rounded-lg border border-gray-200 bg-white shadow-sm"
+      >
         <ul>
           <li
             v-for="board in boards"
             :key="board.id"
+            data-testid="board-list-item"
             class="group flex items-center gap-2 border-b border-gray-100 px-4 py-3 transition-colors last:border-b-0"
           >
             <RouterLink
               :to="`/${board.slug}`"
+              data-testid="board-link"
               class="flex-1 truncate text-sm text-gray-700 hover:text-gray-900 hover:underline"
             >
               {{ board.title }}
             </RouterLink>
             <button
               @click="handleExport(board)"
+              data-testid="export-board-button"
               class="shrink-0 rounded p-1.5 text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-green-50 hover:text-green-600"
               :title="isExported(board.id) ? 'Скопировано!' : 'Экспортировать как Markdown'"
             >
@@ -56,6 +63,7 @@ async function handleDelete(board: BoardRecord) {
             </button>
             <button
               @click="handleDelete(board)"
+              data-testid="delete-board-button"
               class="shrink-0 rounded p-1.5 text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-50 hover:text-red-600"
               title="Удалить доску"
             >
@@ -68,6 +76,7 @@ async function handleDelete(board: BoardRecord) {
       <div class="mt-6 flex justify-center">
         <button
           @click="navigateToCreate"
+          data-testid="create-board-button"
           class="rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
         >
           Создать новую доску

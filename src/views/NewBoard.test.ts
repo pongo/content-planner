@@ -8,7 +8,7 @@ import NewBoard from "./NewBoard.vue";
 import { getDB } from "@/db/db";
 
 const routerMock = vi.hoisted(() => ({
-  push: vi.fn(),
+  push: vi.fn<(path: string) => void>(),
 }));
 
 vi.mock("vue-router", () => ({
@@ -30,8 +30,8 @@ function mockStorage() {
   Object.defineProperty(navigator, "storage", {
     configurable: true,
     value: {
-      persisted: vi.fn().mockResolvedValue(false),
-      persist: vi.fn().mockResolvedValue(true),
+      persisted: vi.fn<() => Promise<boolean>>().mockResolvedValue(false),
+      persist: vi.fn<() => Promise<boolean>>().mockResolvedValue(true),
     },
   });
 }
