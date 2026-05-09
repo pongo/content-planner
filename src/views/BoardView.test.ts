@@ -299,401 +299,407 @@ describe("BoardView", () => {
     expect(wrapper.text()).toContain("Пост в понедельник");
   });
 
-  it("creates a week from the add week control", async () => {
-    vi.spyOn(crypto, "randomUUID").mockReturnValue(
-      "week-new" as `${string}-${string}-${string}-${string}-${string}`,
-    );
-    await seedRecords({ boards: [makeBoard()], weeks: [makeWeek()] });
-    const wrapper = mountView();
-
-    await waitFor(() => {
-      expect(wrapper.find("[data-testid='add-week-button']").exists()).toBe(true);
-    });
-    await wrapper.get("[data-testid='add-week-button']").trigger("click");
-    await waitFor(() => {
-      expect(wrapper.find("[data-week-id='week-new']").exists()).toBe(true);
-    });
-
-    const { weeks } = await getRecords();
-    expect(weeks).toMatchObject([
-      { id: "week-categories", boardId: "board-1", title: "Categories", order: 0 },
-      { id: "week-new", boardId: "board-1", order: 1 },
-    ]);
-  });
-
-  it("creates a card from the Categories add button", async () => {
-    vi.spyOn(crypto, "randomUUID").mockReturnValue(
-      "card-new" as `${string}-${string}-${string}-${string}-${string}`,
-    );
-    await seedRecords({ boards: [makeBoard()], weeks: [makeWeek()] });
-    const wrapper = mountView();
-
-    await waitFor(() => {
-      expect(wrapper.find("[data-testid='add-category-card-button']").exists()).toBe(true);
-    });
-    await wrapper.get("[data-testid='add-category-card-button']").trigger("click");
-    await wrapper.get("[data-testid='card-title-input']").setValue("Новая карточка");
-    await wrapper.get("[data-testid='save-card-button']").trigger("click");
-    await waitFor(() => {
-      expect(wrapper.text()).toContain("Новая карточка");
-    });
-
-    const { cards } = await getRecords();
-    expect(cards).toMatchObject([
-      {
-        id: "card-new",
-        weekId: "week-categories",
-        column: "ALL",
-        title: "Новая карточка",
-        order: 0,
-      },
-    ]);
-  });
-
-  it("opens a create dialog for the double-clicked table cell", async () => {
-    vi.spyOn(crypto, "randomUUID").mockReturnValue(
-      "card-dblclick" as `${string}-${string}-${string}-${string}-${string}`,
-    );
-    await seedRecords({
-      boards: [makeBoard()],
-      weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
-    });
-    const wrapper = mountView();
-
-    await waitFor(() => {
-      expect(wrapper.find("[data-week-id='week-1'][data-column='TUE']").exists()).toBe(true);
-    });
-    await wrapper.get("[data-week-id='week-1'][data-column='TUE']").trigger("dblclick");
-    await wrapper.get("[data-testid='card-title-input']").setValue("Карточка вторника");
-    await wrapper.get("[data-testid='save-card-button']").trigger("click");
-    await waitFor(() => {
-      expect(wrapper.text()).toContain("Карточка вторника");
-    });
-
-    const { cards } = await getRecords();
-    expect(cards).toMatchObject([
-      {
-        id: "card-dblclick",
-        weekId: "week-1",
-        column: "TUE",
-        title: "Карточка вторника",
-        order: 0,
-      },
-    ]);
-  });
-
-  it("edits a card on double click", async () => {
-    await seedRecords({
-      boards: [makeBoard()],
-      weeks: [makeWeek()],
-      cards: [makeCard({ title: "Старый заголовок" })],
-    });
-    const wrapper = mountView();
-
-    await waitFor(() => {
-      expect(wrapper.find("[data-testid='board-card']").exists()).toBe(true);
-    });
-    await wrapper.get("[data-testid='board-card']").trigger("dblclick");
-    await wrapper.get("[data-testid='card-title-input']").setValue("Новый заголовок");
-    await wrapper.get("[data-testid='save-card-button']").trigger("click");
-    await waitFor(() => {
-      expect(wrapper.text()).toContain("Новый заголовок");
-    });
-
-    const { cards } = await getRecords();
-    expect(cards).toMatchObject([{ id: "card-1", title: "Новый заголовок" }]);
-  });
-
-  it("deletes a card from the card delete button", async () => {
-    await seedRecords({
-      boards: [makeBoard()],
-      weeks: [makeWeek()],
-      cards: [makeCard()],
-    });
-    const wrapper = mountView();
-
-    await waitFor(() => {
-      expect(wrapper.find("[data-testid='board-card']").exists()).toBe(true);
-    });
-    await wrapper.get("[data-testid='board-card']").trigger("mouseenter");
-    await wrapper.get("[data-testid='delete-card-button']").trigger("click");
-    await waitFor(() => {
-      expect(wrapper.find("[data-testid='board-card']").exists()).toBe(false);
-    });
-
-    const { cards } = await getRecords();
-    expect(cards).toHaveLength(0);
-    expect(window.confirm).toHaveBeenCalledWith("Удалить?");
-  });
-
-  it("creates a selected-title card on ctrl double click", async () => {
-    vi.spyOn(crypto, "randomUUID").mockReturnValue(
-      "card-selected" as `${string}-${string}-${string}-${string}-${string}`,
-    );
-    await seedRecords({
-      boards: [makeBoard()],
-      weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
-      cards: [makeCard({ title: "Рубрика\nподробности" })],
-    });
-    const wrapper = mountView();
-
-    await waitFor(() => {
-      expect(wrapper.find("[data-week-id='week-1'][data-column='MON']").exists()).toBe(true);
-    });
-    await wrapper.get("[data-week-id='week-1'][data-column='MON']").trigger("dblclick", {
-      ctrlKey: true,
-    });
-    await wrapper.get("[data-testid='select-card-title-button']").trigger("click");
-    await waitFor(() => {
-      expect(wrapper.get("[data-testid='card-title-input']").element).toHaveProperty(
-        "value",
-        "Рубрика",
+  describe("card", () => {
+    it("creates a card from the Categories add button", async () => {
+      vi.spyOn(crypto, "randomUUID").mockReturnValue(
+        "card-new" as `${string}-${string}-${string}-${string}-${string}`,
       );
-    });
-    await wrapper.get("[data-testid='save-card-button']").trigger("click");
-    await waitFor(() => {
-      expect(wrapper.findAll("[data-testid='board-card']")).toHaveLength(2);
+      await seedRecords({ boards: [makeBoard()], weeks: [makeWeek()] });
+      const wrapper = mountView();
+
+      await waitFor(() => {
+        expect(wrapper.find("[data-testid='add-category-card-button']").exists()).toBe(true);
+      });
+      await wrapper.get("[data-testid='add-category-card-button']").trigger("click");
+      await wrapper.get("[data-testid='card-title-input']").setValue("Новая карточка");
+      await wrapper.get("[data-testid='save-card-button']").trigger("click");
+      await waitFor(() => {
+        expect(wrapper.text()).toContain("Новая карточка");
+      });
+
+      const { cards } = await getRecords();
+      expect(cards).toMatchObject([
+        {
+          id: "card-new",
+          weekId: "week-categories",
+          column: "ALL",
+          title: "Новая карточка",
+          order: 0,
+        },
+      ]);
     });
 
-    const { cards } = await getRecords();
-    expect(cards).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          id: "card-selected",
-          weekId: "week-1",
-          column: "MON",
-          title: "Рубрика",
-        }),
-      ]),
-    );
-  });
-
-  it("moves a card between cells by drag", async () => {
-    await seedRecords({
-      boards: [makeBoard()],
-      weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
-      cards: [makeCard({ id: "card-drag", weekId: "week-1", column: "MON" })],
-    });
-    const wrapper = mountView();
-
-    await waitFor(() => {
-      expect(wrapper.find("[data-card-id='card-drag']").exists()).toBe(true);
-    });
-    await simulateDrag({
-      cardId: "card-drag",
-      fromWeekId: "week-1",
-      fromColumn: "MON",
-      toWeekId: "week-1",
-      toColumn: "TUE",
-    });
-    await waitFor(() => {
-      expect(wrapper.find("[data-card-id='card-drag']").exists()).toBe(true);
-    });
-
-    const cards = await getCardsById();
-    expect(cards.get("card-drag")).toMatchObject({
-      weekId: "week-1",
-      column: "TUE",
-      order: 0,
-    });
-  });
-
-  it("moves a card between weeks by drag", async () => {
-    await seedRecords({
-      boards: [makeBoard()],
-      weeks: [
-        makeWeek(),
-        makeWeek({ id: "week-1", title: "Неделя 1", order: 1 }),
-        makeWeek({ id: "week-2", title: "Неделя 2", order: 2 }),
-      ],
-      cards: [makeCard({ id: "card-week-drag", weekId: "week-1", column: "MON" })],
-    });
-    const wrapper = mountView();
-
-    await waitFor(() => {
-      expect(wrapper.find("[data-card-id='card-week-drag']").exists()).toBe(true);
-    });
-    await simulateDrag({
-      cardId: "card-week-drag",
-      fromWeekId: "week-1",
-      fromColumn: "MON",
-      toWeekId: "week-2",
-      toColumn: "FRI",
-    });
-
-    const cards = await getCardsById();
-    expect(cards.get("card-week-drag")).toMatchObject({
-      weekId: "week-2",
-      column: "FRI",
-      order: 0,
-    });
-  });
-
-  it("reorders cards inside the same cell by drag", async () => {
-    await seedRecords({
-      boards: [makeBoard()],
-      weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
-      cards: [
-        makeCard({ id: "card-a", weekId: "week-1", column: "MON", title: "A" }),
-        makeCard({ id: "card-b", weekId: "week-1", column: "MON", title: "B" }),
-      ],
-    });
-    const wrapper = mountView();
-
-    await waitFor(() => {
-      expect(wrapper.findAll("[data-testid='board-card']")).toHaveLength(2);
-    });
-    await simulateDrag({
-      cardId: "card-b",
-      fromWeekId: "week-1",
-      fromColumn: "MON",
-      toWeekId: "week-1",
-      toColumn: "MON",
-      targetCardIds: ["card-b", "card-a"],
-    });
-
-    const cards = await getCardsById();
-    expect(cards.get("card-b")).toMatchObject({ order: 0 });
-    expect(cards.get("card-a")).toMatchObject({ order: 1 });
-  });
-
-  it("opens a copied-card create dialog on ctrl drag", async () => {
-    vi.spyOn(crypto, "randomUUID").mockReturnValue(
-      "card-copy" as `${string}-${string}-${string}-${string}-${string}`,
-    );
-    await seedRecords({
-      boards: [makeBoard()],
-      weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
-      cards: [
-        makeCard({
-          id: "card-source",
-          weekId: "week-1",
-          column: "MON",
-          title: "Исходная\nдетали",
-        }),
-      ],
-    });
-    const wrapper = mountView();
-
-    await waitFor(() => {
-      expect(wrapper.find("[data-card-id='card-source']").exists()).toBe(true);
-    });
-    await simulateDrag({
-      cardId: "card-source",
-      fromWeekId: "week-1",
-      fromColumn: "MON",
-      toWeekId: "week-1",
-      toColumn: "WED",
-      ctrlKey: true,
-    });
-    await waitFor(() => {
-      expect(wrapper.get("[data-testid='card-title-input']").element).toHaveProperty(
-        "value",
-        "Исходная",
+    it("opens a create dialog for the double-clicked table cell", async () => {
+      vi.spyOn(crypto, "randomUUID").mockReturnValue(
+        "card-dblclick" as `${string}-${string}-${string}-${string}-${string}`,
       );
-    });
+      await seedRecords({
+        boards: [makeBoard()],
+        weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
+      });
+      const wrapper = mountView();
 
-    let cards = await getCardsById();
-    expect(cards.get("card-source")).toMatchObject({
-      weekId: "week-1",
-      column: "MON",
-      title: "Исходная\nдетали",
-    });
+      await waitFor(() => {
+        expect(wrapper.find("[data-week-id='week-1'][data-column='TUE']").exists()).toBe(true);
+      });
+      await wrapper.get("[data-week-id='week-1'][data-column='TUE']").trigger("dblclick");
+      await wrapper.get("[data-testid='card-title-input']").setValue("Карточка вторника");
+      await wrapper.get("[data-testid='save-card-button']").trigger("click");
+      await waitFor(() => {
+        expect(wrapper.text()).toContain("Карточка вторника");
+      });
 
-    await wrapper.get("[data-testid='save-card-button']").trigger("click");
-    await waitFor(() => {
-      expect(wrapper.findAll("[data-testid='board-card']")).toHaveLength(2);
-    });
-
-    cards = await getCardsById();
-    expect(cards.get("card-copy")).toMatchObject({
-      weekId: "week-1",
-      column: "WED",
-      title: "Исходная",
-    });
-  });
-
-  it("keeps cards unchanged when drag target is missing", async () => {
-    await seedRecords({
-      boards: [makeBoard()],
-      weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
-      cards: [makeCard({ id: "card-missing-target", weekId: "week-1", column: "MON" })],
-    });
-    const wrapper = mountView();
-
-    await waitFor(() => {
-      expect(wrapper.find("[data-card-id='card-missing-target']").exists()).toBe(true);
-    });
-    await simulateDrag({
-      cardId: "card-missing-target",
-      fromWeekId: "week-1",
-      fromColumn: "MON",
-      toWeekId: "week-1",
-      toColumn: "TUE",
-      missingTarget: true,
-    });
-
-    const cards = await getCardsById();
-    expect(cards.get("card-missing-target")).toMatchObject({
-      weekId: "week-1",
-      column: "MON",
-      order: 0,
-    });
-  });
-
-  it("completes a week by moving regular cards to Categories and dropping dashed cards", async () => {
-    await seedRecords({
-      boards: [makeBoard()],
-      weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
-      cards: [
-        makeCard({
-          id: "card-regular",
-          weekId: "week-1",
-          column: "MON",
-          title: "Регулярная\nдетали",
-        }),
-        makeCard({
-          id: "card-permanent",
+      const { cards } = await getRecords();
+      expect(cards).toMatchObject([
+        {
+          id: "card-dblclick",
           weekId: "week-1",
           column: "TUE",
-          title: "Постоянная\n=\nдетали",
-        }),
-        makeCard({
-          id: "card-dashed",
-          weekId: "week-1",
-          column: "WED",
-          title: "- Черновик",
-        }),
-      ],
-    });
-    const wrapper = mountView();
-
-    await waitFor(() => {
-      expect(wrapper.find("[data-testid='complete-week-button']").exists()).toBe(true);
-    });
-    await wrapper.get("[data-testid='complete-week-button']").trigger("click");
-    await waitFor(() => {
-      expect(wrapper.find("[data-week-id='week-1']").exists()).toBe(false);
+          title: "Карточка вторника",
+          order: 0,
+        },
+      ]);
     });
 
-    const { weeks, cards } = await getRecords();
-    expect(weeks).toMatchObject([{ id: "week-categories", title: "Categories" }]);
-    expect(cards).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          id: "card-regular",
-          weekId: "week-categories",
-          column: "ALL",
-          title: "Регулярная",
-        }),
-        expect.objectContaining({
-          id: "card-permanent",
-          weekId: "week-categories",
-          column: "ALL",
-          title: "Постоянная\n=\nдетали",
-        }),
-      ]),
-    );
-    expect(cards).not.toEqual([expect.objectContaining({ id: "card-dashed" })]);
+    it("edits a card on double click", async () => {
+      await seedRecords({
+        boards: [makeBoard()],
+        weeks: [makeWeek()],
+        cards: [makeCard({ title: "Старый заголовок" })],
+      });
+      const wrapper = mountView();
+
+      await waitFor(() => {
+        expect(wrapper.find("[data-testid='board-card']").exists()).toBe(true);
+      });
+      await wrapper.get("[data-testid='board-card']").trigger("dblclick");
+      await wrapper.get("[data-testid='card-title-input']").setValue("Новый заголовок");
+      await wrapper.get("[data-testid='save-card-button']").trigger("click");
+      await waitFor(() => {
+        expect(wrapper.text()).toContain("Новый заголовок");
+      });
+
+      const { cards } = await getRecords();
+      expect(cards).toMatchObject([{ id: "card-1", title: "Новый заголовок" }]);
+    });
+
+    it("deletes a card from the card delete button", async () => {
+      await seedRecords({
+        boards: [makeBoard()],
+        weeks: [makeWeek()],
+        cards: [makeCard()],
+      });
+      const wrapper = mountView();
+
+      await waitFor(() => {
+        expect(wrapper.find("[data-testid='board-card']").exists()).toBe(true);
+      });
+      await wrapper.get("[data-testid='board-card']").trigger("mouseenter");
+      await wrapper.get("[data-testid='delete-card-button']").trigger("click");
+      await waitFor(() => {
+        expect(wrapper.find("[data-testid='board-card']").exists()).toBe(false);
+      });
+
+      const { cards } = await getRecords();
+      expect(cards).toHaveLength(0);
+      expect(window.confirm).toHaveBeenCalledWith("Удалить?");
+    });
+
+    it("creates a selected-title card on ctrl double click", async () => {
+      vi.spyOn(crypto, "randomUUID").mockReturnValue(
+        "card-selected" as `${string}-${string}-${string}-${string}-${string}`,
+      );
+      await seedRecords({
+        boards: [makeBoard()],
+        weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
+        cards: [makeCard({ title: "Рубрика\nподробности" })],
+      });
+      const wrapper = mountView();
+
+      await waitFor(() => {
+        expect(wrapper.find("[data-week-id='week-1'][data-column='MON']").exists()).toBe(true);
+      });
+      await wrapper.get("[data-week-id='week-1'][data-column='MON']").trigger("dblclick", {
+        ctrlKey: true,
+      });
+      await wrapper.get("[data-testid='select-card-title-button']").trigger("click");
+      await waitFor(() => {
+        expect(wrapper.get("[data-testid='card-title-input']").element).toHaveProperty(
+          "value",
+          "Рубрика",
+        );
+      });
+      await wrapper.get("[data-testid='save-card-button']").trigger("click");
+      await waitFor(() => {
+        expect(wrapper.findAll("[data-testid='board-card']")).toHaveLength(2);
+      });
+
+      const { cards } = await getRecords();
+      expect(cards).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: "card-selected",
+            weekId: "week-1",
+            column: "MON",
+            title: "Рубрика",
+          }),
+        ]),
+      );
+    });
+  });
+
+  describe("drag and drop", () => {
+    it("moves a card between cells by drag", async () => {
+      await seedRecords({
+        boards: [makeBoard()],
+        weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
+        cards: [makeCard({ id: "card-drag", weekId: "week-1", column: "MON" })],
+      });
+      const wrapper = mountView();
+
+      await waitFor(() => {
+        expect(wrapper.find("[data-card-id='card-drag']").exists()).toBe(true);
+      });
+      await simulateDrag({
+        cardId: "card-drag",
+        fromWeekId: "week-1",
+        fromColumn: "MON",
+        toWeekId: "week-1",
+        toColumn: "TUE",
+      });
+      await waitFor(() => {
+        expect(wrapper.find("[data-card-id='card-drag']").exists()).toBe(true);
+      });
+
+      const cards = await getCardsById();
+      expect(cards.get("card-drag")).toMatchObject({
+        weekId: "week-1",
+        column: "TUE",
+        order: 0,
+      });
+    });
+
+    it("moves a card between weeks by drag", async () => {
+      await seedRecords({
+        boards: [makeBoard()],
+        weeks: [
+          makeWeek(),
+          makeWeek({ id: "week-1", title: "Неделя 1", order: 1 }),
+          makeWeek({ id: "week-2", title: "Неделя 2", order: 2 }),
+        ],
+        cards: [makeCard({ id: "card-week-drag", weekId: "week-1", column: "MON" })],
+      });
+      const wrapper = mountView();
+
+      await waitFor(() => {
+        expect(wrapper.find("[data-card-id='card-week-drag']").exists()).toBe(true);
+      });
+      await simulateDrag({
+        cardId: "card-week-drag",
+        fromWeekId: "week-1",
+        fromColumn: "MON",
+        toWeekId: "week-2",
+        toColumn: "FRI",
+      });
+
+      const cards = await getCardsById();
+      expect(cards.get("card-week-drag")).toMatchObject({
+        weekId: "week-2",
+        column: "FRI",
+        order: 0,
+      });
+    });
+
+    it("reorders cards inside the same cell by drag", async () => {
+      await seedRecords({
+        boards: [makeBoard()],
+        weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
+        cards: [
+          makeCard({ id: "card-a", weekId: "week-1", column: "MON", title: "A" }),
+          makeCard({ id: "card-b", weekId: "week-1", column: "MON", title: "B" }),
+        ],
+      });
+      const wrapper = mountView();
+
+      await waitFor(() => {
+        expect(wrapper.findAll("[data-testid='board-card']")).toHaveLength(2);
+      });
+      await simulateDrag({
+        cardId: "card-b",
+        fromWeekId: "week-1",
+        fromColumn: "MON",
+        toWeekId: "week-1",
+        toColumn: "MON",
+        targetCardIds: ["card-b", "card-a"],
+      });
+
+      const cards = await getCardsById();
+      expect(cards.get("card-b")).toMatchObject({ order: 0 });
+      expect(cards.get("card-a")).toMatchObject({ order: 1 });
+    });
+
+    it("opens a copied-card create dialog on ctrl drag", async () => {
+      vi.spyOn(crypto, "randomUUID").mockReturnValue(
+        "card-copy" as `${string}-${string}-${string}-${string}-${string}`,
+      );
+      await seedRecords({
+        boards: [makeBoard()],
+        weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
+        cards: [
+          makeCard({
+            id: "card-source",
+            weekId: "week-1",
+            column: "MON",
+            title: "Исходная\nдетали",
+          }),
+        ],
+      });
+      const wrapper = mountView();
+
+      await waitFor(() => {
+        expect(wrapper.find("[data-card-id='card-source']").exists()).toBe(true);
+      });
+      await simulateDrag({
+        cardId: "card-source",
+        fromWeekId: "week-1",
+        fromColumn: "MON",
+        toWeekId: "week-1",
+        toColumn: "WED",
+        ctrlKey: true,
+      });
+      await waitFor(() => {
+        expect(wrapper.get("[data-testid='card-title-input']").element).toHaveProperty(
+          "value",
+          "Исходная",
+        );
+      });
+
+      let cards = await getCardsById();
+      expect(cards.get("card-source")).toMatchObject({
+        weekId: "week-1",
+        column: "MON",
+        title: "Исходная\nдетали",
+      });
+
+      await wrapper.get("[data-testid='save-card-button']").trigger("click");
+      await waitFor(() => {
+        expect(wrapper.findAll("[data-testid='board-card']")).toHaveLength(2);
+      });
+
+      cards = await getCardsById();
+      expect(cards.get("card-copy")).toMatchObject({
+        weekId: "week-1",
+        column: "WED",
+        title: "Исходная",
+      });
+    });
+
+    it("keeps cards unchanged when drag target is missing", async () => {
+      await seedRecords({
+        boards: [makeBoard()],
+        weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
+        cards: [makeCard({ id: "card-missing-target", weekId: "week-1", column: "MON" })],
+      });
+      const wrapper = mountView();
+
+      await waitFor(() => {
+        expect(wrapper.find("[data-card-id='card-missing-target']").exists()).toBe(true);
+      });
+      await simulateDrag({
+        cardId: "card-missing-target",
+        fromWeekId: "week-1",
+        fromColumn: "MON",
+        toWeekId: "week-1",
+        toColumn: "TUE",
+        missingTarget: true,
+      });
+
+      const cards = await getCardsById();
+      expect(cards.get("card-missing-target")).toMatchObject({
+        weekId: "week-1",
+        column: "MON",
+        order: 0,
+      });
+    });
+  });
+
+  describe("week", () => {
+    it("creates a week from the add week control", async () => {
+      vi.spyOn(crypto, "randomUUID").mockReturnValue(
+        "week-new" as `${string}-${string}-${string}-${string}-${string}`,
+      );
+      await seedRecords({ boards: [makeBoard()], weeks: [makeWeek()] });
+      const wrapper = mountView();
+
+      await waitFor(() => {
+        expect(wrapper.find("[data-testid='add-week-button']").exists()).toBe(true);
+      });
+      await wrapper.get("[data-testid='add-week-button']").trigger("click");
+      await waitFor(() => {
+        expect(wrapper.find("[data-week-id='week-new']").exists()).toBe(true);
+      });
+
+      const { weeks } = await getRecords();
+      expect(weeks).toMatchObject([
+        { id: "week-categories", boardId: "board-1", title: "Categories", order: 0 },
+        { id: "week-new", boardId: "board-1", order: 1 },
+      ]);
+    });
+
+    it("completes a week by moving regular cards to Categories and dropping dashed cards", async () => {
+      await seedRecords({
+        boards: [makeBoard()],
+        weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
+        cards: [
+          makeCard({
+            id: "card-regular",
+            weekId: "week-1",
+            column: "MON",
+            title: "Регулярная\nдетали",
+          }),
+          makeCard({
+            id: "card-permanent",
+            weekId: "week-1",
+            column: "TUE",
+            title: "Постоянная\n=\nдетали",
+          }),
+          makeCard({
+            id: "card-dashed",
+            weekId: "week-1",
+            column: "WED",
+            title: "- Черновик",
+          }),
+        ],
+      });
+      const wrapper = mountView();
+
+      await waitFor(() => {
+        expect(wrapper.find("[data-testid='complete-week-button']").exists()).toBe(true);
+      });
+      await wrapper.get("[data-testid='complete-week-button']").trigger("click");
+      await waitFor(() => {
+        expect(wrapper.find("[data-week-id='week-1']").exists()).toBe(false);
+      });
+
+      const { weeks, cards } = await getRecords();
+      expect(weeks).toMatchObject([{ id: "week-categories", title: "Categories" }]);
+      expect(cards).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: "card-regular",
+            weekId: "week-categories",
+            column: "ALL",
+            title: "Регулярная",
+          }),
+          expect.objectContaining({
+            id: "card-permanent",
+            weekId: "week-categories",
+            column: "ALL",
+            title: "Постоянная\n=\nдетали",
+          }),
+        ]),
+      );
+      expect(cards).not.toEqual([expect.objectContaining({ id: "card-dashed" })]);
+    });
   });
 });
