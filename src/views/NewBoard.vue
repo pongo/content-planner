@@ -47,6 +47,7 @@ function handleKeydown(e: KeyboardEvent) {
       <div class="flex gap-2">
         <input
           ref="inputRef"
+          data-testid="board-title-input"
           v-model="title"
           @keydown="handleKeydown"
           type="text"
@@ -55,6 +56,7 @@ function handleKeydown(e: KeyboardEvent) {
           :disabled="isCreating"
         />
         <button
+          data-testid="create-board-button"
           @click="handleCreate"
           :disabled="isCreating || !title.trim()"
           class="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
