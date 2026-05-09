@@ -10,6 +10,12 @@ import type { CardRecord } from "@/shared/db/db";
 
 const props = defineProps<{ slug: string }>();
 
+type AddCardDraft = {
+  weekId: string;
+  column: CardRecord["column"];
+  text?: string;
+};
+
 const boardStore = useBoardStore();
 const { createCard } = useCardCommands(boardStore);
 
@@ -17,30 +23,25 @@ async function addWeek(title: string) {
   await boardStore.createWeek(title);
 }
 
-const addCardWeekId = ref<string | null>(null);
-const addCardColumn = ref<CardRecord["column"] | null>(null);
-const addCardText = ref<string | undefined>(undefined);
+const addCardDraft = ref<AddCardDraft | null>(null);
 const isAddingCard = ref(false);
 
 function openAddCard(weekId: string, column: CardRecord["column"], text?: string) {
-  addCardWeekId.value = weekId;
-  addCardColumn.value = column;
-  addCardText.value = text;
+  addCardDraft.value = { weekId, column, text };
 }
 
 function closeAddCard() {
-  addCardWeekId.value = null;
-  addCardColumn.value = null;
-  addCardText.value = undefined;
+  addCardDraft.value = null;
   isAddingCard.value = false;
 }
 
 async function handleCreateCard(title: string) {
-  if (!addCardWeekId.value || !addCardColumn.value || isAddingCard.value) return;
+  const draft = addCardDraft.value;
+  if (!draft || isAddingCard.value) return;
 
   isAddingCard.value = true;
   try {
-    await createCard(addCardWeekId.value, title, addCardColumn.value);
+    await createCard(draft.weekId, title, draft.column);
     closeAddCard();
   } catch (e) {
     console.error("Failed to save card:", e);
@@ -125,8 +126,8 @@ watch(
 
   <!-- Add Card Dialog -->
   <CardDialog
-    v-if="addCardWeekId && addCardColumn"
-    :initial-title="addCardText"
+    v-if="addCardDraft"
+    :initial-title="addCardDraft.text"
     mode="create"
     :saving="isAddingCard"
     @save="handleCreateCard"
