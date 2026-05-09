@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { VueDraggable, type DraggableEvent } from "vue-draggable-plus";
+import { computed, onMounted, onUnmounted, toRef } from "vue";
+import { VueDraggable } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
 import Card from "@/components/Card.vue";
 import { Plus, Check } from "@lucide/vue";
-import { getFirstLine } from "@/utils/card-title";
-import type { CardRecord, WeekRecord } from "@/db/db";
+import { useCardDrag } from "@/features/card/useCardDrag.ts";
+import type { CardRecord, WeekRecord } from "@/shared/db/db";
 
 const props = defineProps<{
   weeks: WeekRecord[];
@@ -34,98 +34,16 @@ const columnLabels: Record<string, string> = {
   SUN: "ВС",
 };
 
-const columns: CardRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
-
-function cellKey(weekId: string, column: CardRecord["column"]) {
-  return `${weekId}:${column}`;
-}
-
-const draggedCard = ref<CardRecord | null>(null);
-
-async function handleDragEnd(e: DraggableEvent, weekId: string, column: CardRecord["column"]) {
-  const dragged = draggedCard.value;
-  draggedCard.value = null;
-
-  const { targetWeekId, targetCol } = getDragEndTargets(e);
-  if (!targetWeekId || !targetCol) return;
-
-  // Ctrl+drop: copy mode — original stays, dialog opens with first line
-  if (dragged && getOriginalEvent(e)?.ctrlKey) {
-    syncCellLists();
-    emit("addCard", targetWeekId, targetCol, getFirstLine(dragged.title));
-    return;
-  }
-
-  const sourceKey = cellKey(weekId, column);
-  const sourceCards = cellLists.value[sourceKey] ?? [];
-  const targetKey = cellKey(targetWeekId, targetCol);
-
-  // Move within the same cell
-  if (e.to === e.from) {
-    await boardStore.saveCell(weekId, column, sourceCards);
-    return;
-  }
-
-  // Move to another cell
-  const targetCards = cellLists.value[targetKey] ?? [];
-  await boardStore.saveBothCells(weekId, column, sourceCards, targetWeekId, targetCol, targetCards);
-}
-
-function getOriginalEvent(e: DraggableEvent) {
-  return (e as unknown as { originalEvent?: MouseEvent }).originalEvent;
-}
-
-function getDragEndTargets(e: DraggableEvent) {
-  const targetTd = e.to.closest("td[data-week-id]") as HTMLTableCellElement | null;
-  const targetWeekId = targetTd?.dataset.weekId;
-  const targetCol = targetTd?.dataset.column as CardRecord["column"] | undefined;
-  return { targetWeekId, targetCol };
-}
-
-function handleDragStart(e: DraggableEvent) {
-  const cardId = (e.item as HTMLElement).dataset.cardId;
-  if (cardId) {
-    draggedCard.value = boardStore.cards.find((t) => t.id === cardId) ?? null;
-  }
-}
-
-function getWeekColumns(week: WeekRecord): { key: CardRecord["column"]; colspan?: number }[] {
-  if (week.title === "Categories") {
-    return [{ key: "ALL", colspan: 7 }];
-  }
-  return columns.map((col) => ({ key: col }));
-}
-
-// Each cell gets its own mutable array that vue-draggable can reorder
-const cellLists = ref<Record<string, CardRecord[]>>({});
 const boardStore = useBoardStore();
+const columns = boardStore.columns;
 
 const isBoardEmpty = computed(() => boardStore.cards.length === 0);
 
-// Sync cellLists with store data — mutate in-place to keep VueDraggable's reference
-function syncCellLists() {
-  for (const week of props.weeks) {
-    const colsToSync = getWeekColumns(week);
-    for (const colInfo of colsToSync) {
-      const col = colInfo.key;
-      const key = cellKey(week.id, col);
-      const newCards = [...props.getCards(week.id, col)];
-      if (!cellLists.value[key]) {
-        cellLists.value[key] = newCards;
-      } else {
-        // Mutate existing array in-place so VueDraggable's v-model reference stays valid
-        const existing = cellLists.value[key]!;
-        existing.length = 0;
-        existing.push(...newCards);
-      }
-    }
-  }
-}
-
-// Initial sync + watch for store changes (weeks and cards)
-watch([() => props.weeks, () => boardStore.cards], () => syncCellLists(), {
-  deep: true,
-  immediate: true,
+const { cellLists, cellKey, getWeekColumns, handleDragStart, handleDragEnd } = useCardDrag({
+  weeks: toRef(props, "weeks"),
+  getCards: props.getCards,
+  boardStore,
+  addCard: (weekId, column, text) => emit("addCard", weekId, column, text),
 });
 
 function handleDragover(e: DragEvent) {

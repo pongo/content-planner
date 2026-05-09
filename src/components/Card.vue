@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useBoardStore } from "@/stores/board";
-import { generatePastelColor } from "@/utils/pastelColor";
+import { useCardCommands } from "@/features/card/useCardCommands.ts";
+import { generatePastelColor } from "@/shared/utils/pastelColor";
 import CardDialog from "@/components/CardDialog.vue";
 import { X, Copy } from "@lucide/vue";
-import type { CardRecord } from "@/db/db";
-import { parseTitle } from "@/utils/card-title.ts";
+import type { CardRecord } from "@/shared/db/db";
+import { parseTitle } from "@/shared/utils/card-title";
 
 // import { useAppVariants } from "@/variants.ts";
 // const { variants } = useAppVariants();
@@ -13,7 +14,9 @@ import { parseTitle } from "@/utils/card-title.ts";
 const props = defineProps<{ card: CardRecord }>();
 
 const boardStore = useBoardStore();
+const { deleteCard, updateCard } = useCardCommands(boardStore);
 const isEditing = ref(false);
+const isSaving = ref(false);
 const isHovered = ref(false);
 
 const colors = computed(() => {
@@ -30,7 +33,7 @@ const isDuplicate = computed(() => {
 
 function handleDelete() {
   if (confirm("Удалить?")) {
-    boardStore.deleteCard(props.card.id);
+    deleteCard(props.card.id);
   }
 }
 
@@ -40,6 +43,20 @@ function startEdit() {
 
 function closeEdit() {
   isEditing.value = false;
+}
+
+async function handleUpdateCard(title: string) {
+  if (isSaving.value) return;
+
+  isSaving.value = true;
+  try {
+    await updateCard(props.card.id, { title });
+    closeEdit();
+  } catch (e) {
+    console.error("Failed to save card:", e);
+  } finally {
+    isSaving.value = false;
+  }
 }
 </script>
 
@@ -94,9 +111,10 @@ function closeEdit() {
     <!-- Edit Dialog -->
     <CardDialog
       v-if="isEditing"
-      :week-id="card.weekId"
       mode="edit"
-      :card="card"
+      :initial-title="card.title"
+      :saving="isSaving"
+      @save="handleUpdateCard"
       @close="closeEdit"
     />
   </div>

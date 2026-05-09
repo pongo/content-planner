@@ -1,11 +1,10 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import type { BoardRecord, WeekRecord, CardRecord } from "@/db/db";
-import * as boardsApi from "@/db/boards";
-import * as weeksApi from "@/db/weeks.ts";
-import * as cardsApi from "@/db/cards";
-import { generateUniqueSlug } from "@/utils/slug";
-import { getFirstLine } from "@/utils/card-title";
+import type { BoardRecord, WeekRecord, CardRecord } from "@/shared/db/db";
+import * as boardsApi from "@/entities/board";
+import * as weeksApi from "@/entities/week";
+import { loadCardsForWeeks } from "@/entities/board-queries";
+import { getFirstLine } from "@/shared/utils/card-title";
 
 const COLUMNS: CardRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -50,35 +49,19 @@ export const useBoardStore = defineStore("board", () => {
       const board = await boardsApi.getBoardBySlug(slug);
       if (!board) throw new Error("Board not found");
       currentBoard.value = board;
-
-      const boardId = board.id;
-      const [weeksList, allCards] = await Promise.all([
-        weeksApi.getWeeksByBoard(boardId),
-        loadAllCardsForBoard(boardId),
-      ]);
-      weeks.value = weeksList;
-      cards.value = allCards;
+      await reloadBoard();
     } finally {
       loading.value = false;
     }
   }
 
-  async function loadAllCardsForBoard(boardId: string): Promise<CardRecord[]> {
+  async function reloadBoard() {
+    if (!currentBoard.value) return;
+    const boardId = currentBoard.value.id;
     const weeksList = await weeksApi.getWeeksByBoard(boardId);
-    // Load cards for all weeks in parallel
-    const cardPromises = weeksList.map((week) => cardsApi.getCardsByWeek(week.id));
-    return (await Promise.all(cardPromises)).flat();
-  }
-
-  async function createBoard(title: string): Promise<string> {
-    const id = crypto.randomUUID();
-    const existingBoards = await boardsApi.getAllBoards();
-    const existingSlugs = new Set(existingBoards.map((b) => b.slug));
-    const slug = generateUniqueSlug(title, existingSlugs);
-
-    await boardsApi.createBoard({ id, title, slug });
-
-    return slug;
+    const allCards = await loadCardsForWeeks(weeksList);
+    weeks.value = weeksList;
+    cards.value = allCards;
   }
 
   async function updateBoardTitle(title: string): Promise<void> {
@@ -97,9 +80,7 @@ export const useBoardStore = defineStore("board", () => {
     }
   }
 
-  async function deleteCurrentBoard(): Promise<void> {
-    if (!currentBoard.value) return;
-    await boardsApi.deleteBoard(currentBoard.value.id);
+  function clearCurrentBoard(): void {
     currentBoard.value = null;
     weeks.value = [];
     cards.value = [];
@@ -126,119 +107,7 @@ export const useBoardStore = defineStore("board", () => {
     if (!categoriesWeek) return;
 
     await weeksApi.completeWeek(weekId, categoriesWeek.id);
-
-    // Refresh store
-    if (currentBoard.value) {
-      const boardId = currentBoard.value.id;
-      const [weeksList, allCards] = await Promise.all([
-        weeksApi.getWeeksByBoard(boardId),
-        loadAllCardsForBoard(boardId),
-      ]);
-      weeks.value = weeksList;
-      cards.value = allCards;
-    }
-  }
-
-  async function createCard(
-    weekId: string,
-    title: string,
-    column: CardRecord["column"],
-  ): Promise<void> {
-    const id = crypto.randomUUID();
-    await cardsApi.createCard({
-      id,
-      weekId,
-      column,
-      title,
-    });
-    const card = await cardsApi
-      .getCardsByWeek(weekId, column)
-      .then((t) => t.find((x) => x.id === id));
-    if (card) cards.value.push(card);
-  }
-
-  async function updateCard(
-    cardId: string,
-    updates: {
-      title?: string;
-      weekId?: string;
-      column?: CardRecord["column"];
-      order?: number;
-    },
-  ): Promise<void> {
-    await cardsApi.updateCard(cardId, updates);
-    const card = cards.value.find((t) => t.id === cardId);
-    if (!card) return;
-
-    if (updates.title !== undefined) card.title = updates.title;
-    if (updates.weekId !== undefined) card.weekId = updates.weekId;
-    if (updates.column !== undefined) card.column = updates.column;
-    if (updates.order !== undefined) card.order = updates.order;
-  }
-
-  async function deleteCard(cardId: string): Promise<void> {
-    await cardsApi.deleteCard(cardId);
-    cards.value = cards.value.filter((t) => t.id !== cardId);
-  }
-
-  async function moveCard(
-    cardId: string,
-    newWeekId: string,
-    newColumn: CardRecord["column"],
-    targetIndex?: number,
-  ): Promise<void> {
-    if (!cardId) return;
-
-    // Get cards in the target cell to compute correct order
-    const targetCards = getCardsForWeek(newWeekId, newColumn);
-    const index = targetIndex ?? targetCards.length;
-
-    // Save the moved card with its new location and order
-    await cardsApi.moveCard(cardId, newWeekId, newColumn, index);
-
-    // Reload all cards so cellLists watcher picks up the changes
-    if (currentBoard.value) {
-      const refreshed = await loadAllCardsForBoard(currentBoard.value.id);
-      cards.value = refreshed;
-    }
-  }
-
-  async function saveCell(
-    weekId: string,
-    column: CardRecord["column"],
-    cellCards: CardRecord[],
-  ): Promise<void> {
-    await cardsApi.saveCellCards(weekId, column, cellCards);
-
-    // Reload all cards so cellLists watcher picks up the changes
-    if (currentBoard.value) {
-      const refreshed = await loadAllCardsForBoard(currentBoard.value.id);
-      cards.value = refreshed;
-    }
-  }
-
-  async function saveBothCells(
-    sourceWeekId: string,
-    sourceColumn: CardRecord["column"],
-    sourceCards: CardRecord[],
-    targetWeekId: string,
-    targetColumn: CardRecord["column"],
-    targetCards: CardRecord[],
-  ): Promise<void> {
-    await cardsApi.saveBothCellsCards(
-      sourceWeekId,
-      sourceColumn,
-      sourceCards,
-      targetWeekId,
-      targetColumn,
-      targetCards,
-    );
-
-    // Reload all cards so cellLists watcher picks up the changes
-    if (currentBoard.value) {
-      const refreshed = await loadAllCardsForBoard(currentBoard.value.id);
-      cards.value = refreshed;
-    }
+    await reloadBoard();
   }
 
   async function loadAllBoards(): Promise<BoardRecord[]> {
@@ -255,18 +124,12 @@ export const useBoardStore = defineStore("board", () => {
     duplicateFirstLines,
     getCardsForWeek,
     loadBoard,
-    createBoard,
+    reloadBoard,
     updateBoardTitle,
-    deleteCurrentBoard,
+    clearCurrentBoard,
     createWeek,
     deleteWeek,
     completeWeek,
-    createCard,
-    updateCard,
-    deleteCard,
-    moveCard,
-    saveCell,
-    saveBothCells,
     loadAllBoards,
   };
 });

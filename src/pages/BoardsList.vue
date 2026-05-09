@@ -2,12 +2,12 @@
 import { ref, onMounted } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import { Trash2, Share, Check } from "@lucide/vue";
-import type { BoardRecord } from "@/db/db";
-import { useBoardActions } from "@/composables/useBoardActions";
-import { getAllBoards } from "@/db/boards";
+import type { BoardRecord } from "@/shared/db/db";
+import { useBoardActions } from "@/features/boards-list/useBoardActions";
+import { getAllBoards } from "@/entities/board";
 
 const router = useRouter();
-const { handleExport, deleteBoard, isExported } = useBoardActions();
+const { exportBoard, deleteBoard, isExported } = useBoardActions();
 
 const boards = ref<BoardRecord[]>([]);
 const loading = ref(true);
@@ -53,7 +53,7 @@ async function handleDelete(board: BoardRecord) {
               {{ board.title }}
             </RouterLink>
             <button
-              @click="handleExport(board)"
+              @click="exportBoard(board)"
               data-testid="export-board-button"
               class="shrink-0 rounded p-1.5 text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-green-50 hover:text-green-600"
               :title="isExported(board.id) ? 'Скопировано!' : 'Экспортировать как Markdown'"

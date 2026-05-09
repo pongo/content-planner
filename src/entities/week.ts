@@ -1,6 +1,6 @@
-import { parseTitle } from "@/utils/card-title.ts";
-import { getDB } from "./db";
-import type { WeekRecord } from "./db";
+import { parseTitle } from "@/shared/utils/card-title";
+import { getDB } from "@/shared/db/db";
+import type { WeekRecord } from "@/shared/db/db";
 
 export async function getWeeksByBoard(boardId: string): Promise<WeekRecord[]> {
   const db = await getDB();
