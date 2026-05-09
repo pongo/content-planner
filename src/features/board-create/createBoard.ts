@@ -1,6 +1,6 @@
 import { requestPersistentStorage } from "@/shared/db/db";
-import { createBoard, getAllBoards } from "@/entities/board/api";
-import { createWeek } from "@/entities/week/api";
+import { createBoard, getAllBoards } from "@/entities/board";
+import { createWeek } from "@/entities/week";
 import { generateUniqueSlug } from "@/shared/utils/slug";
 
 export async function createBoardWithInitialWeek(title: string): Promise<string> {

@@ -1,5 +1,5 @@
 import type { CardRecord } from "@/shared/db/db";
-import * as cardsApi from "@/entities/card/api";
+import * as cardsApi from "@/entities/card";
 import type { useBoardStore } from "@/stores/board";
 
 type BoardStore = ReturnType<typeof useBoardStore>;

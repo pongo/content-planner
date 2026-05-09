@@ -4,7 +4,7 @@ import { useRouter, RouterLink } from "vue-router";
 import { Trash2, Share, Check } from "@lucide/vue";
 import type { BoardRecord } from "@/shared/db/db";
 import { useBoardActions } from "@/features/boards-list/useBoardActions";
-import { getAllBoards } from "@/entities/board/api";
+import { getAllBoards } from "@/entities/board";
 
 const router = useRouter();
 const { exportBoard, deleteBoard, isExported } = useBoardActions();

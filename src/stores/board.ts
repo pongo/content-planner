@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { BoardRecord, WeekRecord, CardRecord } from "@/shared/db/db";
-import * as boardsApi from "@/entities/board/api";
-import * as weeksApi from "@/entities/week/api";
-import { loadCardsForWeeks } from "@/entities/board/queries";
+import * as boardsApi from "@/entities/board";
+import * as weeksApi from "@/entities/week";
+import { loadCardsForWeeks } from "@/entities/board-queries";
 import { getFirstLine } from "@/shared/utils/card-title";
 
 const COLUMNS: CardRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];

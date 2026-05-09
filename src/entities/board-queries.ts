@@ -1,6 +1,6 @@
 import type { CardRecord, WeekRecord } from "@/shared/db/db";
-import { getWeeksByBoard } from "@/entities/week/api";
-import { getCardsByWeek } from "@/entities/card/api";
+import { getWeeksByBoard } from "@/entities/week";
+import { getCardsByWeek } from "@/entities/card";
 
 export async function loadAllCardsForBoard(boardId: string): Promise<CardRecord[]> {
   const weeks = await getWeeksByBoard(boardId);

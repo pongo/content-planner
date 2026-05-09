@@ -1,7 +1,7 @@
 import { ref, watch, type Ref } from "vue";
 import type { DraggableEvent } from "vue-draggable-plus";
 import type { CardRecord, WeekRecord } from "@/shared/db/db";
-import { saveBothCellsCards, saveCellCards } from "@/entities/card/api";
+import { saveBothCellsCards, saveCellCards } from "@/entities/card";
 import { getFirstLine } from "@/shared/utils/card-title";
 import type { useBoardStore } from "@/stores/board";
 

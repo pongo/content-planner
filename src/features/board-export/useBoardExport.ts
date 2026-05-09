@@ -1,6 +1,6 @@
 import { reactive } from "vue";
 import type { BoardRecord } from "@/shared/db/db";
-import { loadAllCardsForBoard } from "@/entities/board/queries";
+import { loadAllCardsForBoard } from "@/entities/board-queries";
 import { exportBoardToMarkdown } from "@/features/board-export/exportMarkdown";
 
 const exportedBoards = reactive<Record<string, boolean>>({});
