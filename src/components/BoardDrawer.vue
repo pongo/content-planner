@@ -11,7 +11,7 @@ const emit = defineEmits<{ close: [] }>();
 
 const boardStore = useBoardStore();
 const router = useRouter();
-const { handleExport, deleteBoard, isExported } = useBoardActions();
+const { exportBoard, deleteBoard, isExported } = useBoardActions();
 
 const boards = ref<BoardRecord[]>([]);
 
@@ -87,7 +87,7 @@ async function handleDelete(board: BoardRecord) {
                   {{ board.title }}
                 </RouterLink>
                 <button
-                  @click="handleExport(board)"
+                  @click="exportBoard(board)"
                   class="shrink-0 rounded p-1 text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-green-50 hover:text-green-600"
                   :title="isExported(board.id) ? 'Скопировано!' : 'Экспортировать как Markdown'"
                 >
