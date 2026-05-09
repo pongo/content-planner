@@ -5,10 +5,10 @@ import { createPinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
 import BoardView from "./BoardView.vue";
-import { getDB, type BoardRecord, type CardRecord, type WeekRecord } from "@/db/db";
-import { createBoard } from "@/db/boards";
-import { createCard } from "@/db/cards";
-import { createWeek } from "@/db/weeks";
+import { getDB, type BoardRecord, type CardRecord, type WeekRecord } from "@/shared/db/db";
+import { createBoard } from "@/entities/board/api";
+import { createCard } from "@/entities/card/api";
+import { createWeek } from "@/entities/week/api";
 
 type DraggableStubRecord = {
   el: HTMLElement | null;

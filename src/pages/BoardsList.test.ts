@@ -4,10 +4,10 @@ import { mount, flushPromises } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
 import BoardsList from "./BoardsList.vue";
-import { getDB, type BoardRecord, type CardRecord, type WeekRecord } from "@/db/db";
-import { createBoard } from "@/db/boards";
-import { createCard } from "@/db/cards";
-import { createWeek } from "@/db/weeks";
+import { getDB, type BoardRecord, type CardRecord, type WeekRecord } from "@/shared/db/db";
+import { createBoard } from "@/entities/board/api";
+import { createCard } from "@/entities/card/api";
+import { createWeek } from "@/entities/week/api";
 
 const routerMock = vi.hoisted(() => ({
   push: vi.fn<(path: string) => void>(),

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useBoardStore } from "@/stores/board";
-import { generatePastelColor } from "@/utils/pastelColor";
-import type { CardRecord } from "@/db/db";
+import { useCardCommands } from "@/features/card-edit/useCardCommands";
+import { generatePastelColor } from "@/shared/utils/pastelColor";
+import type { CardRecord } from "@/shared/db/db";
 
 const props = defineProps<{
   weekId: string;
@@ -15,6 +16,7 @@ const props = defineProps<{
 const emit = defineEmits<{ close: [] }>();
 
 const boardStore = useBoardStore();
+const { createCard, updateCard } = useCardCommands(boardStore);
 
 const title = ref(
   props.mode === "edit" && props.card ? props.card.title : (props.initialTitle ?? ""),
@@ -56,12 +58,12 @@ async function handleSave() {
 async function trySave(trimmedTitle: string) {
   if (props.mode === "create") {
     if (!props.column) throw new Error("Column is required for creation");
-    await boardStore.createCard(props.weekId, trimmedTitle, props.column);
+    await createCard(props.weekId, trimmedTitle, props.column);
     return;
   }
 
   if (props.card) {
-    await boardStore.updateCard(props.card.id, { title: trimmedTitle });
+    await updateCard(props.card.id, { title: trimmedTitle });
   }
 }
 

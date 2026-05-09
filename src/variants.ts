@@ -1,4 +1,4 @@
-import { createVariants } from "./composables/useVariants";
+import { createVariants } from "@/shared/composables/useVariants";
 
 export const { provideAppVariants, useAppVariants } = createVariants({
   // border: { key: "1", variants: ["border-black/10", "border-gray-400/30"] as const },

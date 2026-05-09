@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useBoardStore } from "@/stores/board";
-import { generatePastelColor } from "@/utils/pastelColor";
+import { useCardCommands } from "@/features/card-edit/useCardCommands";
+import { generatePastelColor } from "@/shared/utils/pastelColor";
 import CardDialog from "@/components/CardDialog.vue";
 import { X, Copy } from "@lucide/vue";
-import type { CardRecord } from "@/db/db";
-import { parseTitle } from "@/utils/card-title.ts";
+import type { CardRecord } from "@/shared/db/db";
+import { parseTitle } from "@/shared/utils/card-title";
 
 // import { useAppVariants } from "@/variants.ts";
 // const { variants } = useAppVariants();
@@ -13,6 +14,7 @@ import { parseTitle } from "@/utils/card-title.ts";
 const props = defineProps<{ card: CardRecord }>();
 
 const boardStore = useBoardStore();
+const { deleteCard } = useCardCommands(boardStore);
 const isEditing = ref(false);
 const isHovered = ref(false);
 
@@ -30,7 +32,7 @@ const isDuplicate = computed(() => {
 
 function handleDelete() {
   if (confirm("Удалить?")) {
-    boardStore.deleteCard(props.card.id);
+    deleteCard(props.card.id);
   }
 }
 

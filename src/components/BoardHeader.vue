@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import { Menu } from "@lucide/vue";
 import { useBoardStore } from "@/stores/board";
-import { useBoardTitle } from "@/composables/useBoardTitle";
+import { useBoardTitle } from "@/features/board-create/useBoardTitle";
 import BoardDrawer from "@/components/BoardDrawer.vue";
 
 const boardStore = useBoardStore();

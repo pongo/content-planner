@@ -5,7 +5,7 @@ import { createPinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import NewBoard from "./NewBoard.vue";
-import { getDB } from "@/db/db";
+import { getDB } from "@/shared/db/db";
 
 const routerMock = vi.hoisted(() => ({
   push: vi.fn<(path: string) => void>(),

@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useBoardStore } from "@/stores/board";
-import { requestPersistentStorage } from "@/db/db.ts";
+import { createBoardWithInitialWeek } from "@/features/board-create/createBoard";
 
 const router = useRouter();
 const boardStore = useBoardStore();
@@ -21,10 +21,8 @@ async function handleCreate() {
 
   isCreating.value = true;
   try {
-    const slug = await boardStore.createBoard(trimmed);
+    const slug = await createBoardWithInitialWeek(trimmed);
     await boardStore.loadBoard(slug);
-    await boardStore.createWeek("Categories");
-    await requestPersistentStorage();
     router.push(`/${slug}`);
   } catch (e) {
     console.error("Failed to create board:", e);
