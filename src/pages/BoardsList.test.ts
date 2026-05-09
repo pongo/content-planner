@@ -4,10 +4,8 @@ import { mount, flushPromises } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
 import BoardsList from "./BoardsList.vue";
-import { getDB, type BoardRecord, type CardRecord, type WeekRecord } from "@/shared/db/db";
-import { createBoard } from "@/entities/board";
-import { createCard } from "@/entities/card";
-import { createWeek } from "@/entities/week";
+import { clearDB, makeBoard, seedRecords, waitFor } from "../../tests/pageTestUtils";
+import { getDB } from "@/shared/db/db";
 
 const routerMock = vi.hoisted(() => ({
   push: vi.fn<(path: string) => void>(),
@@ -30,67 +28,10 @@ vi.mock("vue-router", () => ({
   }),
 }));
 
-async function clearDB() {
-  const db = await getDB();
-  const tx = db.transaction(["boards", "weeks", "cards"], "readwrite");
-  tx.objectStore("cards").clear();
-  tx.objectStore("weeks").clear();
-  tx.objectStore("boards").clear();
-  await tx.done;
-}
-
-async function seedRecords(records: {
-  boards?: BoardRecord[];
-  weeks?: WeekRecord[];
-  cards?: CardRecord[];
-}) {
-  for (const board of records.boards ?? []) {
-    await createBoard({ id: board.id, title: board.title, slug: board.slug });
-  }
-  for (const week of records.weeks ?? []) {
-    await createWeek({ id: week.id, boardId: week.boardId, title: week.title });
-  }
-  for (const card of records.cards ?? []) {
-    await createCard({
-      id: card.id,
-      weekId: card.weekId,
-      column: card.column,
-      title: card.title,
-    });
-  }
-}
-
-function makeBoard(overrides: Partial<BoardRecord> = {}): BoardRecord {
-  return {
-    id: "board-1",
-    title: "Первая доска",
-    slug: "first-board",
-    createdAt: 1,
-    ...overrides,
-  };
-}
-
 function mountView() {
   return mount(BoardsList, {
     attachTo: document.body,
   });
-}
-
-async function waitFor(assertion: () => void) {
-  let lastError: unknown;
-
-  for (let attempt = 0; attempt < 50; attempt++) {
-    try {
-      assertion();
-      return;
-    } catch (error) {
-      lastError = error;
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      await flushPromises();
-    }
-  }
-
-  throw lastError;
 }
 
 describe("BoardsList", () => {
@@ -119,7 +60,7 @@ describe("BoardsList", () => {
   it("renders boards loaded from IndexedDB", async () => {
     await seedRecords({
       boards: [
-        makeBoard(),
+        makeBoard({ title: "Первая доска", slug: "first-board" }),
         makeBoard({ id: "board-2", title: "Вторая доска", slug: "second-board" }),
       ],
     });

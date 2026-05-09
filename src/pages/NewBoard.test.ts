@@ -5,6 +5,7 @@ import { createPinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import NewBoard from "./NewBoard.vue";
+import { clearDB, waitFor } from "../../tests/pageTestUtils";
 import { getDB } from "@/shared/db/db";
 
 const routerMock = vi.hoisted(() => ({
@@ -16,15 +17,6 @@ vi.mock("vue-router", () => ({
     push: routerMock.push,
   }),
 }));
-
-async function clearDB() {
-  const db = await getDB();
-  const tx = db.transaction(["boards", "weeks", "cards"], "readwrite");
-  tx.objectStore("cards").clear();
-  tx.objectStore("weeks").clear();
-  tx.objectStore("boards").clear();
-  await tx.done;
-}
 
 function mockStorage() {
   Object.defineProperty(navigator, "storage", {
@@ -51,23 +43,6 @@ async function getRecords() {
     boards: await db.getAll("boards"),
     weeks: await db.getAll("weeks"),
   };
-}
-
-async function waitFor(assertion: () => void) {
-  let lastError: unknown;
-
-  for (let attempt = 0; attempt < 50; attempt++) {
-    try {
-      assertion();
-      return;
-    } catch (error) {
-      lastError = error;
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      await flushPromises();
-    }
-  }
-
-  throw lastError;
 }
 
 describe("NewBoard", () => {
