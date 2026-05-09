@@ -5,6 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
 import BoardsList from "./BoardsList.vue";
 import { getDB, type BoardRecord, type CardRecord, type WeekRecord } from "@/db/db";
+import { createBoard } from "@/db/boards";
+import { createCard } from "@/db/cards";
+import { createWeek } from "@/db/weeks";
 
 const routerMock = vi.hoisted(() => ({
   push: vi.fn<(path: string) => void>(),
@@ -41,20 +44,20 @@ async function seedRecords(records: {
   weeks?: WeekRecord[];
   cards?: CardRecord[];
 }) {
-  const db = await getDB();
-  const tx = db.transaction(["boards", "weeks", "cards"], "readwrite");
-
   for (const board of records.boards ?? []) {
-    await tx.objectStore("boards").add(board);
+    await createBoard({ id: board.id, title: board.title, slug: board.slug });
   }
   for (const week of records.weeks ?? []) {
-    await tx.objectStore("weeks").add(week);
+    await createWeek({ id: week.id, boardId: week.boardId, title: week.title });
   }
   for (const card of records.cards ?? []) {
-    await tx.objectStore("cards").add(card);
+    await createCard({
+      id: card.id,
+      weekId: card.weekId,
+      column: card.column,
+      title: card.title,
+    });
   }
-
-  await tx.done;
 }
 
 function makeBoard(overrides: Partial<BoardRecord> = {}): BoardRecord {
