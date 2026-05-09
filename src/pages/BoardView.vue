@@ -23,53 +23,67 @@ type CardSelectorDraft = {
 
 const boardStore = useBoardStore();
 const { createCard } = useCardCommands(boardStore);
+const addCardDialog = useAddCardDialog(createCard);
+const cardSelectorDialog = useCardSelectorDialog(addCardDialog.open);
 
 async function addWeek(title: string) {
   await boardStore.createWeek(title);
 }
 
-const addCardDraft = ref<AddCardDraft | null>(null);
-const isAddingCard = ref(false);
+function useAddCardDialog(
+  createCard: (weekId: string, title: string, column: CardRecord["column"]) => Promise<void>,
+) {
+  const draft = ref<AddCardDraft | null>(null);
+  const isSaving = ref(false);
 
-function openAddCard(weekId: string, column: CardRecord["column"], text?: string) {
-  addCardDraft.value = { weekId, column, text };
-}
-
-function closeAddCard() {
-  addCardDraft.value = null;
-  isAddingCard.value = false;
-}
-
-async function handleCreateCard(title: string) {
-  const draft = addCardDraft.value;
-  if (!draft || isAddingCard.value) return;
-
-  isAddingCard.value = true;
-  try {
-    await createCard(draft.weekId, title, draft.column);
-    closeAddCard();
-  } catch (e) {
-    console.error("Failed to save card:", e);
-    isAddingCard.value = false;
+  function open(weekId: string, column: CardRecord["column"], text?: string) {
+    draft.value = { weekId, column, text };
   }
-}
 
-const cardSelectorDraft = ref<CardSelectorDraft | null>(null);
-
-function openSelector(weekId: string, column: CardRecord["column"]) {
-  cardSelectorDraft.value = { weekId, column };
-}
-
-function handleSelectorSelect(title: string) {
-  const draft = cardSelectorDraft.value;
-  if (draft) {
-    openAddCard(draft.weekId, draft.column, title);
+  function close() {
+    draft.value = null;
+    isSaving.value = false;
   }
-  closeSelector();
+
+  async function save(title: string) {
+    const currentDraft = draft.value;
+    if (!currentDraft || isSaving.value) return;
+
+    isSaving.value = true;
+    try {
+      await createCard(currentDraft.weekId, title, currentDraft.column);
+      close();
+    } catch (e) {
+      console.error("Failed to save card:", e);
+      isSaving.value = false;
+    }
+  }
+
+  return { draft, isSaving, open, close, save };
 }
 
-function closeSelector() {
-  cardSelectorDraft.value = null;
+function useCardSelectorDialog(
+  openAddCard: (weekId: string, column: CardRecord["column"], text?: string) => void,
+) {
+  const draft = ref<CardSelectorDraft | null>(null);
+
+  function open(weekId: string, column: CardRecord["column"]) {
+    draft.value = { weekId, column };
+  }
+
+  function close() {
+    draft.value = null;
+  }
+
+  function select(title: string) {
+    const currentDraft = draft.value;
+    if (currentDraft) {
+      openAddCard(currentDraft.weekId, currentDraft.column, title);
+    }
+    close();
+  }
+
+  return { draft, open, close, select };
 }
 
 function getCards(weekId: string, column: CardRecord["column"]) {
@@ -108,8 +122,8 @@ watch(
     <BoardTable
       :weeks="boardStore.weeks"
       :get-cards="getCards"
-      @add-card="openAddCard"
-      @add-card-with-selector="openSelector"
+      @add-card="addCardDialog.open"
+      @add-card-with-selector="cardSelectorDialog.open"
       @add-week="addWeek"
       @week-delete="handleWeekDelete"
       @week-complete="handleWeekComplete"
@@ -122,18 +136,18 @@ watch(
 
   <!-- Select Card Title Dialog -->
   <CardSelectorDialog
-    v-if="cardSelectorDraft"
-    @select="handleSelectorSelect"
-    @close="closeSelector"
+    v-if="cardSelectorDialog.draft.value"
+    @select="cardSelectorDialog.select"
+    @close="cardSelectorDialog.close"
   />
 
   <!-- Add Card Dialog -->
   <CardDialog
-    v-if="addCardDraft"
-    :initial-title="addCardDraft.text"
+    v-if="addCardDialog.draft.value"
+    :initial-title="addCardDialog.draft.value.text"
     mode="create"
-    :saving="isAddingCard"
-    @save="handleCreateCard"
-    @close="closeAddCard"
+    :saving="addCardDialog.isSaving.value"
+    @save="addCardDialog.save"
+    @close="addCardDialog.close"
   />
 </template>
