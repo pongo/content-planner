@@ -4,7 +4,7 @@ import { mount, flushPromises } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
-import NewBoard from "./NewBoard.vue";
+import NewBoardPage from "./NewBoardPage.vue";
 import { clearDB, waitFor } from "../../tests/pageTestUtils";
 import { getDB } from "@/shared/db/db";
 
@@ -29,7 +29,7 @@ function mockStorage() {
 }
 
 function mountPage() {
-  return mount(NewBoard, {
+  return mount(NewBoardPage, {
     attachTo: document.body,
     global: {
       plugins: [createPinia()],
@@ -45,7 +45,7 @@ async function getRecords() {
   };
 }
 
-describe("NewBoard", () => {
+describe("NewBoardPage", () => {
   beforeEach(async () => {
     document.body.innerHTML = "";
     routerMock.push.mockReset();

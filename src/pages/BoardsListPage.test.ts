@@ -3,7 +3,7 @@ import "fake-indexeddb/auto";
 import { mount, flushPromises } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
-import BoardsList from "./BoardsList.vue";
+import BoardsListPage from "./BoardsListPage.vue";
 import { clearDB, makeBoard, seedRecords, waitFor } from "../../tests/pageTestUtils";
 import { getDB } from "@/shared/db/db";
 
@@ -29,12 +29,12 @@ vi.mock("vue-router", () => ({
 }));
 
 function mountPage() {
-  return mount(BoardsList, {
+  return mount(BoardsListPage, {
     attachTo: document.body,
   });
 }
 
-describe("BoardsList", () => {
+describe("BoardsListPage", () => {
   beforeEach(async () => {
     document.body.innerHTML = "";
     routerMock.push.mockReset();

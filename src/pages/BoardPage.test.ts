@@ -4,7 +4,7 @@ import { mount, flushPromises } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
-import BoardView from "./BoardView.vue";
+import BoardPage from "./BoardPage.vue";
 import {
   clearDB,
   makeBoard,
@@ -90,7 +90,7 @@ vi.mock("vue-router", () => ({
 }));
 
 function mountPage(slug = "content-plan") {
-  return mount(BoardView, {
+  return mount(BoardPage, {
     attachTo: document.body,
     props: { slug },
     global: {
@@ -183,7 +183,7 @@ async function simulateDrag(options: DragOptions) {
   await flushPromises();
 }
 
-describe("BoardView", () => {
+describe("BoardPage", () => {
   beforeEach(async () => {
     document.body.innerHTML = "";
     draggableStubs.length = 0;
