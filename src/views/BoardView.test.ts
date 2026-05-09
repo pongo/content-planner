@@ -10,9 +10,62 @@ import { createBoard } from "@/db/boards";
 import { createCard } from "@/db/cards";
 import { createWeek } from "@/db/weeks";
 
+type DraggableStubRecord = {
+  el: HTMLElement | null;
+  props: {
+    modelValue: CardRecord[];
+  };
+  attrs: Record<string, unknown>;
+};
+
+type DragOptions = {
+  cardId: string;
+  fromWeekId: string;
+  fromColumn: CardRecord["column"];
+  toWeekId: string;
+  toColumn: CardRecord["column"];
+  ctrlKey?: boolean;
+  targetCardIds?: string[];
+  missingTarget?: boolean;
+};
+
 const routerMock = vi.hoisted(() => ({
   push: vi.fn<(path: string) => void>(),
 }));
+
+const draggableStubs: DraggableStubRecord[] = [];
+
+const VueDraggableStub = defineComponent({
+  name: "VueDraggableStub",
+  inheritAttrs: false,
+  props: {
+    modelValue: {
+      type: Array<CardRecord>,
+      required: true,
+    },
+  },
+  setup(props, { slots, attrs }) {
+    const record: DraggableStubRecord = {
+      el: null,
+      props: props as { modelValue: CardRecord[] },
+      attrs,
+    };
+    draggableStubs.push(record);
+
+    return () =>
+      h(
+        "div",
+        {
+          ...attrs,
+          "data-testid": "draggable-list",
+          ref: (el) => {
+            record.el = el as HTMLElement | null;
+          },
+        },
+        slots.default?.(),
+      );
+  },
+});
 
 vi.mock("vue-router", () => ({
   useRouter: () => ({
@@ -100,11 +153,7 @@ function mountView(slug = "content-plan") {
       plugins: [createPinia()],
       stubs: {
         teleport: true,
-        VueDraggable: defineComponent({
-          setup(_, { slots, attrs }) {
-            return () => h("div", attrs, slots.default?.());
-          },
-        }),
+        VueDraggable: VueDraggableStub,
       },
     },
   });
@@ -116,6 +165,78 @@ async function getRecords() {
     weeks: await db.getAll("weeks"),
     cards: await db.getAll("cards"),
   };
+}
+
+async function getCardsById() {
+  const db = await getDB();
+  const cards = await db.getAll("cards");
+  return new Map(cards.map((card) => [card.id, card]));
+}
+
+function getCell(weekId: string, column: CardRecord["column"]) {
+  const cell = document.querySelector<HTMLElement>(
+    `[data-week-id='${weekId}'][data-column='${column}']`,
+  );
+  if (!cell) throw new Error(`Cell ${weekId}/${column} not found`);
+  return cell;
+}
+
+function getDraggableForCell(weekId: string, column: CardRecord["column"]) {
+  const list = getCell(weekId, column).querySelector("[data-testid='draggable-list']");
+  const record = draggableStubs.find((stub) => stub.el === list);
+  if (!record) throw new Error(`Draggable ${weekId}/${column} not found`);
+  return record;
+}
+
+function applyDragModelChange(
+  source: DraggableStubRecord,
+  target: DraggableStubRecord,
+  cardId: string,
+) {
+  if (source === target) return;
+
+  const sourceIndex = source.props.modelValue.findIndex((card) => card.id === cardId);
+  if (sourceIndex === -1) throw new Error(`Card ${cardId} not found in source model`);
+
+  const [card] = source.props.modelValue.splice(sourceIndex, 1);
+  target.props.modelValue.push(card!);
+}
+
+async function simulateDrag(options: DragOptions) {
+  const source = getDraggableForCell(options.fromWeekId, options.fromColumn);
+  const target = getDraggableForCell(options.toWeekId, options.toColumn);
+  const item = document.querySelector<HTMLElement>(`[data-card-id='${options.cardId}']`);
+  if (!item) throw new Error(`Card element ${options.cardId} not found`);
+
+  const start = source.attrs.onStart as ((event: unknown) => void) | undefined;
+  const end = source.attrs.onEnd as ((event: unknown) => void | Promise<void>) | undefined;
+  if (!start || !end) throw new Error("Draggable handlers not found");
+
+  start({ item, from: source.el, to: source.el });
+
+  if (options.targetCardIds) {
+    target.props.modelValue.splice(
+      0,
+      target.props.modelValue.length,
+      ...options.targetCardIds.map((id) => {
+        const card = target.props.modelValue.find((item) => item.id === id);
+        if (!card) throw new Error(`Card ${id} not found in target model`);
+        return card;
+      }),
+    );
+  } else if (!options.ctrlKey && !options.missingTarget) {
+    applyDragModelChange(source, target, options.cardId);
+  }
+
+  await end({
+    item,
+    from: source.el,
+    to: options.missingTarget
+      ? { closest: () => null }
+      : { closest: () => getCell(options.toWeekId, options.toColumn) },
+    originalEvent: { ctrlKey: options.ctrlKey ?? false },
+  });
+  await flushPromises();
 }
 
 async function waitFor(assertion: () => void) {
@@ -138,6 +259,7 @@ async function waitFor(assertion: () => void) {
 describe("BoardView", () => {
   beforeEach(async () => {
     document.body.innerHTML = "";
+    draggableStubs.length = 0;
     routerMock.push.mockReset();
     Object.defineProperty(window, "confirm", {
       configurable: true,
@@ -344,6 +466,179 @@ describe("BoardView", () => {
         }),
       ]),
     );
+  });
+
+  it("moves a card between cells by drag", async () => {
+    await seedRecords({
+      boards: [makeBoard()],
+      weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
+      cards: [makeCard({ id: "card-drag", weekId: "week-1", column: "MON" })],
+    });
+    const wrapper = mountView();
+
+    await waitFor(() => {
+      expect(wrapper.find("[data-card-id='card-drag']").exists()).toBe(true);
+    });
+    await simulateDrag({
+      cardId: "card-drag",
+      fromWeekId: "week-1",
+      fromColumn: "MON",
+      toWeekId: "week-1",
+      toColumn: "TUE",
+    });
+    await waitFor(() => {
+      expect(wrapper.find("[data-card-id='card-drag']").exists()).toBe(true);
+    });
+
+    const cards = await getCardsById();
+    expect(cards.get("card-drag")).toMatchObject({
+      weekId: "week-1",
+      column: "TUE",
+      order: 0,
+    });
+  });
+
+  it("moves a card between weeks by drag", async () => {
+    await seedRecords({
+      boards: [makeBoard()],
+      weeks: [
+        makeWeek(),
+        makeWeek({ id: "week-1", title: "Неделя 1", order: 1 }),
+        makeWeek({ id: "week-2", title: "Неделя 2", order: 2 }),
+      ],
+      cards: [makeCard({ id: "card-week-drag", weekId: "week-1", column: "MON" })],
+    });
+    const wrapper = mountView();
+
+    await waitFor(() => {
+      expect(wrapper.find("[data-card-id='card-week-drag']").exists()).toBe(true);
+    });
+    await simulateDrag({
+      cardId: "card-week-drag",
+      fromWeekId: "week-1",
+      fromColumn: "MON",
+      toWeekId: "week-2",
+      toColumn: "FRI",
+    });
+
+    const cards = await getCardsById();
+    expect(cards.get("card-week-drag")).toMatchObject({
+      weekId: "week-2",
+      column: "FRI",
+      order: 0,
+    });
+  });
+
+  it("reorders cards inside the same cell by drag", async () => {
+    await seedRecords({
+      boards: [makeBoard()],
+      weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
+      cards: [
+        makeCard({ id: "card-a", weekId: "week-1", column: "MON", title: "A" }),
+        makeCard({ id: "card-b", weekId: "week-1", column: "MON", title: "B" }),
+      ],
+    });
+    const wrapper = mountView();
+
+    await waitFor(() => {
+      expect(wrapper.findAll("[data-testid='board-card']")).toHaveLength(2);
+    });
+    await simulateDrag({
+      cardId: "card-b",
+      fromWeekId: "week-1",
+      fromColumn: "MON",
+      toWeekId: "week-1",
+      toColumn: "MON",
+      targetCardIds: ["card-b", "card-a"],
+    });
+
+    const cards = await getCardsById();
+    expect(cards.get("card-b")).toMatchObject({ order: 0 });
+    expect(cards.get("card-a")).toMatchObject({ order: 1 });
+  });
+
+  it("opens a copied-card create dialog on ctrl drag", async () => {
+    vi.spyOn(crypto, "randomUUID").mockReturnValue(
+      "card-copy" as `${string}-${string}-${string}-${string}-${string}`,
+    );
+    await seedRecords({
+      boards: [makeBoard()],
+      weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
+      cards: [
+        makeCard({
+          id: "card-source",
+          weekId: "week-1",
+          column: "MON",
+          title: "Исходная\nдетали",
+        }),
+      ],
+    });
+    const wrapper = mountView();
+
+    await waitFor(() => {
+      expect(wrapper.find("[data-card-id='card-source']").exists()).toBe(true);
+    });
+    await simulateDrag({
+      cardId: "card-source",
+      fromWeekId: "week-1",
+      fromColumn: "MON",
+      toWeekId: "week-1",
+      toColumn: "WED",
+      ctrlKey: true,
+    });
+    await waitFor(() => {
+      expect(wrapper.get("[data-testid='card-title-input']").element).toHaveProperty(
+        "value",
+        "Исходная",
+      );
+    });
+
+    let cards = await getCardsById();
+    expect(cards.get("card-source")).toMatchObject({
+      weekId: "week-1",
+      column: "MON",
+      title: "Исходная\nдетали",
+    });
+
+    await wrapper.get("[data-testid='save-card-button']").trigger("click");
+    await waitFor(() => {
+      expect(wrapper.findAll("[data-testid='board-card']")).toHaveLength(2);
+    });
+
+    cards = await getCardsById();
+    expect(cards.get("card-copy")).toMatchObject({
+      weekId: "week-1",
+      column: "WED",
+      title: "Исходная",
+    });
+  });
+
+  it("keeps cards unchanged when drag target is missing", async () => {
+    await seedRecords({
+      boards: [makeBoard()],
+      weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
+      cards: [makeCard({ id: "card-missing-target", weekId: "week-1", column: "MON" })],
+    });
+    const wrapper = mountView();
+
+    await waitFor(() => {
+      expect(wrapper.find("[data-card-id='card-missing-target']").exists()).toBe(true);
+    });
+    await simulateDrag({
+      cardId: "card-missing-target",
+      fromWeekId: "week-1",
+      fromColumn: "MON",
+      toWeekId: "week-1",
+      toColumn: "TUE",
+      missingTarget: true,
+    });
+
+    const cards = await getCardsById();
+    expect(cards.get("card-missing-target")).toMatchObject({
+      weekId: "week-1",
+      column: "MON",
+      order: 0,
+    });
   });
 
   it("completes a week by moving regular cards to Categories and dropping dashed cards", async () => {
