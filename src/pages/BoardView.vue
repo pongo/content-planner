@@ -16,6 +16,11 @@ type AddCardDraft = {
   text?: string;
 };
 
+type CardSelectorDraft = {
+  weekId: string;
+  column: CardRecord["column"];
+};
+
 const boardStore = useBoardStore();
 const { createCard } = useCardCommands(boardStore);
 
@@ -49,24 +54,22 @@ async function handleCreateCard(title: string) {
   }
 }
 
-const selectorWeekId = ref<string | null>(null);
-const selectorColumn = ref<CardRecord["column"] | null>(null);
+const cardSelectorDraft = ref<CardSelectorDraft | null>(null);
 
 function openSelector(weekId: string, column: CardRecord["column"]) {
-  selectorWeekId.value = weekId;
-  selectorColumn.value = column;
+  cardSelectorDraft.value = { weekId, column };
 }
 
 function handleSelectorSelect(title: string) {
-  if (selectorWeekId.value && selectorColumn.value) {
-    openAddCard(selectorWeekId.value, selectorColumn.value, title);
+  const draft = cardSelectorDraft.value;
+  if (draft) {
+    openAddCard(draft.weekId, draft.column, title);
   }
   closeSelector();
 }
 
 function closeSelector() {
-  selectorWeekId.value = null;
-  selectorColumn.value = null;
+  cardSelectorDraft.value = null;
 }
 
 function getCards(weekId: string, column: CardRecord["column"]) {
@@ -119,7 +122,7 @@ watch(
 
   <!-- Select Card Title Dialog -->
   <CardSelectorDialog
-    v-if="selectorWeekId && selectorColumn"
+    v-if="cardSelectorDraft"
     @select="handleSelectorSelect"
     @close="closeSelector"
   />
