@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useBoardStore } from "@/stores/board";
+import { useCardCommands } from "@/features/card-edit/useCardCommands";
 import BoardTable from "@/components/BoardTable.vue";
 import CardDialog from "@/components/CardDialog.vue";
 import CardSelectorDialog from "@/components/CardSelectorDialog.vue";
@@ -10,6 +11,7 @@ import type { CardRecord } from "@/shared/db/db";
 const props = defineProps<{ slug: string }>();
 
 const boardStore = useBoardStore();
+const { createCard } = useCardCommands(boardStore);
 
 async function addWeek(title: string) {
   await boardStore.createWeek(title);
@@ -18,6 +20,7 @@ async function addWeek(title: string) {
 const addCardWeekId = ref<string | null>(null);
 const addCardColumn = ref<CardRecord["column"] | null>(null);
 const addCardText = ref<string | undefined>(undefined);
+const isAddingCard = ref(false);
 
 function openAddCard(weekId: string, column: CardRecord["column"], text?: string) {
   addCardWeekId.value = weekId;
@@ -29,6 +32,20 @@ function closeAddCard() {
   addCardWeekId.value = null;
   addCardColumn.value = null;
   addCardText.value = undefined;
+  isAddingCard.value = false;
+}
+
+async function handleCreateCard(title: string) {
+  if (!addCardWeekId.value || !addCardColumn.value || isAddingCard.value) return;
+
+  isAddingCard.value = true;
+  try {
+    await createCard(addCardWeekId.value, title, addCardColumn.value);
+    closeAddCard();
+  } catch (e) {
+    console.error("Failed to save card:", e);
+    isAddingCard.value = false;
+  }
 }
 
 const selectorWeekId = ref<string | null>(null);
@@ -109,10 +126,10 @@ watch(
   <!-- Add Card Dialog -->
   <CardDialog
     v-if="addCardWeekId && addCardColumn"
-    :week-id="addCardWeekId"
-    :column="addCardColumn"
     :initial-title="addCardText"
     mode="create"
+    :saving="isAddingCard"
+    @save="handleCreateCard"
     @close="closeAddCard"
   />
 </template>

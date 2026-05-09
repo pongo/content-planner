@@ -1,27 +1,19 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useBoardStore } from "@/stores/board";
-import { useCardCommands } from "@/features/card-edit/useCardCommands";
 import { generatePastelColor } from "@/shared/utils/pastelColor";
-import type { CardRecord } from "@/shared/db/db";
 
 const props = defineProps<{
-  weekId: string;
-  column?: CardRecord["column"];
   mode: "create" | "edit";
-  card?: CardRecord;
   initialTitle?: string;
+  saving?: boolean;
 }>();
 
-const emit = defineEmits<{ close: [] }>();
+const emit = defineEmits<{
+  save: [title: string];
+  close: [];
+}>();
 
-const boardStore = useBoardStore();
-const { createCard, updateCard } = useCardCommands(boardStore);
-
-const title = ref(
-  props.mode === "edit" && props.card ? props.card.title : (props.initialTitle ?? ""),
-);
-const isSaving = ref(false);
+const title = ref(props.initialTitle ?? "");
 const overlayMousedown = ref(false);
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
@@ -42,29 +34,9 @@ onMounted(() => {
 
 async function handleSave() {
   const trimmed = title.value.trim();
-  if (!trimmed || isSaving.value) return;
+  if (!trimmed || props.saving) return;
 
-  isSaving.value = true;
-  try {
-    await trySave(trimmed);
-    emit("close");
-  } catch (e) {
-    console.error("Failed to save card:", e);
-  } finally {
-    isSaving.value = false;
-  }
-}
-
-async function trySave(trimmedTitle: string) {
-  if (props.mode === "create") {
-    if (!props.column) throw new Error("Column is required for creation");
-    await createCard(props.weekId, trimmedTitle, props.column);
-    return;
-  }
-
-  if (props.card) {
-    await updateCard(props.card.id, { title: trimmedTitle });
-  }
+  emit("save", trimmed);
 }
 
 function handleCancel() {
@@ -112,7 +84,7 @@ function handleKeydown(e: KeyboardEvent) {
         <div class="flex border-t border-gray-200/60">
           <button
             @click="handleSave"
-            :disabled="isSaving || !title.trim()"
+            :disabled="saving || !title.trim()"
             class="flex flex-1 items-center justify-center gap-1 bg-green-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
             data-testid="save-card-button"
           >

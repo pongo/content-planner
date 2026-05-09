@@ -14,8 +14,9 @@ import { parseTitle } from "@/shared/utils/card-title";
 const props = defineProps<{ card: CardRecord }>();
 
 const boardStore = useBoardStore();
-const { deleteCard } = useCardCommands(boardStore);
+const { deleteCard, updateCard } = useCardCommands(boardStore);
 const isEditing = ref(false);
+const isSaving = ref(false);
 const isHovered = ref(false);
 
 const colors = computed(() => {
@@ -42,6 +43,20 @@ function startEdit() {
 
 function closeEdit() {
   isEditing.value = false;
+}
+
+async function handleUpdateCard(title: string) {
+  if (isSaving.value) return;
+
+  isSaving.value = true;
+  try {
+    await updateCard(props.card.id, { title });
+    closeEdit();
+  } catch (e) {
+    console.error("Failed to save card:", e);
+  } finally {
+    isSaving.value = false;
+  }
 }
 </script>
 
@@ -96,9 +111,10 @@ function closeEdit() {
     <!-- Edit Dialog -->
     <CardDialog
       v-if="isEditing"
-      :week-id="card.weekId"
       mode="edit"
-      :card="card"
+      :initial-title="card.title"
+      :saving="isSaving"
+      @save="handleUpdateCard"
       @close="closeEdit"
     />
   </div>
