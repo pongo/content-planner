@@ -89,7 +89,7 @@ vi.mock("vue-router", () => ({
   }),
 }));
 
-function mountView(slug = "content-plan") {
+function mountPage(slug = "content-plan") {
   return mount(BoardView, {
     attachTo: document.body,
     props: { slug },
@@ -214,7 +214,7 @@ describe("BoardView", () => {
       ],
     });
 
-    const wrapper = mountView();
+    const wrapper = mountPage();
 
     await waitFor(() => {
       expect(wrapper.find("[data-testid='board-view']").exists()).toBe(true);
@@ -232,7 +232,7 @@ describe("BoardView", () => {
         "card-new" as `${string}-${string}-${string}-${string}-${string}`,
       );
       await seedRecords({ boards: [makeBoard()], weeks: [makeWeek()] });
-      const wrapper = mountView();
+      const wrapper = mountPage();
 
       await waitFor(() => {
         expect(wrapper.find("[data-testid='add-category-card-button']").exists()).toBe(true);
@@ -264,7 +264,7 @@ describe("BoardView", () => {
         boards: [makeBoard()],
         weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
       });
-      const wrapper = mountView();
+      const wrapper = mountPage();
 
       await waitFor(() => {
         expect(wrapper.find("[data-week-id='week-1'][data-column='TUE']").exists()).toBe(true);
@@ -294,7 +294,7 @@ describe("BoardView", () => {
         weeks: [makeWeek()],
         cards: [makeCard({ title: "Старый заголовок" })],
       });
-      const wrapper = mountView();
+      const wrapper = mountPage();
 
       await waitFor(() => {
         expect(wrapper.find("[data-testid='board-card']").exists()).toBe(true);
@@ -316,7 +316,7 @@ describe("BoardView", () => {
         weeks: [makeWeek()],
         cards: [makeCard()],
       });
-      const wrapper = mountView();
+      const wrapper = mountPage();
 
       await waitFor(() => {
         expect(wrapper.find("[data-testid='board-card']").exists()).toBe(true);
@@ -341,7 +341,7 @@ describe("BoardView", () => {
         weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
         cards: [makeCard({ title: "Рубрика\nподробности" })],
       });
-      const wrapper = mountView();
+      const wrapper = mountPage();
 
       await waitFor(() => {
         expect(wrapper.find("[data-week-id='week-1'][data-column='MON']").exists()).toBe(true);
@@ -382,7 +382,7 @@ describe("BoardView", () => {
         weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
         cards: [makeCard({ id: "card-drag", weekId: "week-1", column: "MON" })],
       });
-      const wrapper = mountView();
+      const wrapper = mountPage();
 
       await waitFor(() => {
         expect(wrapper.find("[data-card-id='card-drag']").exists()).toBe(true);
@@ -416,7 +416,7 @@ describe("BoardView", () => {
         ],
         cards: [makeCard({ id: "card-week-drag", weekId: "week-1", column: "MON" })],
       });
-      const wrapper = mountView();
+      const wrapper = mountPage();
 
       await waitFor(() => {
         expect(wrapper.find("[data-card-id='card-week-drag']").exists()).toBe(true);
@@ -446,7 +446,7 @@ describe("BoardView", () => {
           makeCard({ id: "card-b", weekId: "week-1", column: "MON", title: "B" }),
         ],
       });
-      const wrapper = mountView();
+      const wrapper = mountPage();
 
       await waitFor(() => {
         expect(wrapper.findAll("[data-testid='board-card']")).toHaveLength(2);
@@ -481,7 +481,7 @@ describe("BoardView", () => {
           }),
         ],
       });
-      const wrapper = mountView();
+      const wrapper = mountPage();
 
       await waitFor(() => {
         expect(wrapper.find("[data-card-id='card-source']").exists()).toBe(true);
@@ -527,7 +527,7 @@ describe("BoardView", () => {
         weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
         cards: [makeCard({ id: "card-missing-target", weekId: "week-1", column: "MON" })],
       });
-      const wrapper = mountView();
+      const wrapper = mountPage();
 
       await waitFor(() => {
         expect(wrapper.find("[data-card-id='card-missing-target']").exists()).toBe(true);
@@ -556,7 +556,7 @@ describe("BoardView", () => {
         "week-new" as `${string}-${string}-${string}-${string}-${string}`,
       );
       await seedRecords({ boards: [makeBoard()], weeks: [makeWeek()] });
-      const wrapper = mountView();
+      const wrapper = mountPage();
 
       await waitFor(() => {
         expect(wrapper.find("[data-testid='add-week-button']").exists()).toBe(true);
@@ -598,7 +598,7 @@ describe("BoardView", () => {
           }),
         ],
       });
-      const wrapper = mountView();
+      const wrapper = mountPage();
 
       await waitFor(() => {
         expect(wrapper.find("[data-testid='complete-week-button']").exists()).toBe(true);

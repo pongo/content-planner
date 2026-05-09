@@ -28,7 +28,7 @@ vi.mock("vue-router", () => ({
   }),
 }));
 
-function mountView() {
+function mountPage() {
   return mount(BoardsList, {
     attachTo: document.body,
   });
@@ -65,7 +65,7 @@ describe("BoardsList", () => {
       ],
     });
 
-    const wrapper = mountView();
+    const wrapper = mountPage();
 
     await waitFor(() => {
       expect(wrapper.findAll("[data-testid='board-list-item']")).toHaveLength(2);
@@ -78,7 +78,7 @@ describe("BoardsList", () => {
   it("renders board links to board slugs", async () => {
     await seedRecords({ boards: [makeBoard({ slug: "content-plan" })] });
 
-    const wrapper = mountView();
+    const wrapper = mountPage();
 
     await waitFor(() => {
       expect(wrapper.get("[data-testid='board-link']").attributes("href")).toBe("/content-plan");
@@ -86,7 +86,7 @@ describe("BoardsList", () => {
   });
 
   it("navigates to new board creation", async () => {
-    const wrapper = mountView();
+    const wrapper = mountPage();
 
     await waitFor(() => {
       expect(wrapper.find("[data-testid='create-board-button']").exists()).toBe(true);
@@ -98,7 +98,7 @@ describe("BoardsList", () => {
 
   it("deletes a confirmed board from UI and IndexedDB", async () => {
     await seedRecords({ boards: [makeBoard()] });
-    const wrapper = mountView();
+    const wrapper = mountPage();
 
     await waitFor(() => {
       expect(wrapper.findAll("[data-testid='board-list-item']")).toHaveLength(1);
@@ -115,7 +115,7 @@ describe("BoardsList", () => {
   it("keeps a board when deletion is cancelled", async () => {
     vi.mocked(window.confirm).mockReturnValue(false);
     await seedRecords({ boards: [makeBoard()] });
-    const wrapper = mountView();
+    const wrapper = mountPage();
 
     await waitFor(() => {
       expect(wrapper.findAll("[data-testid='board-list-item']")).toHaveLength(1);
@@ -142,7 +142,7 @@ describe("BoardsList", () => {
         },
       ],
     });
-    const wrapper = mountView();
+    const wrapper = mountPage();
 
     await waitFor(() => {
       expect(wrapper.find("[data-testid='export-board-button']").exists()).toBe(true);

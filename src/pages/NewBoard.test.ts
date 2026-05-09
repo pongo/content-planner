@@ -28,7 +28,7 @@ function mockStorage() {
   });
 }
 
-function mountView() {
+function mountPage() {
   return mount(NewBoard, {
     attachTo: document.body,
     global: {
@@ -59,7 +59,7 @@ describe("NewBoard", () => {
   });
 
   it("focuses title input and disables create button initially", async () => {
-    const wrapper = mountView();
+    const wrapper = mountPage();
     await nextTick();
 
     expect(document.activeElement).toBe(wrapper.get("[data-testid='board-title-input']").element);
@@ -67,7 +67,7 @@ describe("NewBoard", () => {
   });
 
   it("keeps whitespace title from creating a board", async () => {
-    const wrapper = mountView();
+    const wrapper = mountPage();
 
     await wrapper.get("[data-testid='board-title-input']").setValue("   ");
     await wrapper.get("[data-testid='create-board-button']").trigger("click");
@@ -80,7 +80,7 @@ describe("NewBoard", () => {
   });
 
   it("creates a board with a default Categories week and navigates on click", async () => {
-    const wrapper = mountView();
+    const wrapper = mountPage();
 
     await wrapper.get("[data-testid='board-title-input']").setValue("My Board");
     await wrapper.get("[data-testid='create-board-button']").trigger("click");
@@ -94,7 +94,7 @@ describe("NewBoard", () => {
   });
 
   it("creates a board when pressing Enter in the title input", async () => {
-    const wrapper = mountView();
+    const wrapper = mountPage();
 
     await wrapper.get("[data-testid='board-title-input']").setValue("Enter Board");
     await wrapper.get("[data-testid='board-title-input']").trigger("keydown", { key: "Enter" });
@@ -108,7 +108,7 @@ describe("NewBoard", () => {
   });
 
   it("prevents duplicate creates while creation is already running", async () => {
-    const wrapper = mountView();
+    const wrapper = mountPage();
     const button = wrapper.get("[data-testid='create-board-button']");
 
     await wrapper.get("[data-testid='board-title-input']").setValue("One Board");
@@ -137,7 +137,7 @@ describe("NewBoard", () => {
       "duplicate-id" as `${string}-${string}-${string}-${string}-${string}`,
     );
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const wrapper = mountView();
+    const wrapper = mountPage();
     const button = wrapper.get("[data-testid='create-board-button']");
 
     await wrapper.get("[data-testid='board-title-input']").setValue("Broken Board");
