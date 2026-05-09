@@ -1,9 +1,9 @@
 import { ref, watch, type Ref } from "vue";
 import type { DraggableEvent } from "vue-draggable-plus";
-import type { CardRecord, WeekRecord } from "@/shared/db/db";
-import { saveBothCellsCards, saveCellCards } from "@/entities/card";
-import { getFirstLine } from "@/shared/utils/card-title";
-import type { useBoardStore } from "@/stores/board";
+import type { CardRecord, WeekRecord } from "@/shared/db/db.ts";
+import { saveBothCellsCards, saveCellCards } from "@/entities/card.ts";
+import { getFirstLine } from "@/shared/utils/card-title.ts";
+import type { useBoardStore } from "@/stores/board.ts";
 
 type BoardStore = ReturnType<typeof useBoardStore>;
 type CardColumn = CardRecord["column"];

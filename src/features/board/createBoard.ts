@@ -1,7 +1,7 @@
-import { requestPersistentStorage } from "@/shared/db/db";
-import { createBoard, getAllBoards } from "@/entities/board";
-import { createWeek } from "@/entities/week";
-import { generateUniqueSlug } from "@/shared/utils/slug";
+import { requestPersistentStorage } from "@/shared/db/db.ts";
+import { createBoard, getAllBoards } from "@/entities/board.ts";
+import { createWeek } from "@/entities/week.ts";
+import { generateUniqueSlug } from "@/shared/utils/slug.ts";
 
 export async function createBoardWithInitialWeek(title: string): Promise<string> {
   const id = crypto.randomUUID();

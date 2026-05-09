@@ -1,5 +1,5 @@
 import { ref, nextTick, watch } from "vue";
-import type { useBoardStore } from "@/stores/board";
+import type { useBoardStore } from "@/stores/board.ts";
 
 export function useBoardTitle(boardStore: ReturnType<typeof useBoardStore>) {
   const isEditingTitle = ref(false);

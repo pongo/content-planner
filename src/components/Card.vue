@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useBoardStore } from "@/stores/board";
-import { useCardCommands } from "@/features/card-edit/useCardCommands";
+import { useCardCommands } from "@/features/card/useCardCommands.ts";
 import { generatePastelColor } from "@/shared/utils/pastelColor";
 import CardDialog from "@/components/CardDialog.vue";
 import { X, Copy } from "@lucide/vue";

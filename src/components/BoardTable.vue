@@ -4,7 +4,7 @@ import { VueDraggable } from "vue-draggable-plus";
 import { useBoardStore } from "@/stores/board";
 import Card from "@/components/Card.vue";
 import { Plus, Check } from "@lucide/vue";
-import { useCardDrag } from "@/features/card-drag/useCardDrag";
+import { useCardDrag } from "@/features/card/useCardDrag.ts";
 import type { CardRecord, WeekRecord } from "@/shared/db/db";
 
 const props = defineProps<{

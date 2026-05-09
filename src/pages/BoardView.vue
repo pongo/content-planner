@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useBoardStore } from "@/stores/board";
-import { useCardCommands } from "@/features/card-edit/useCardCommands";
+import { useCardCommands } from "@/features/card/useCardCommands.ts";
 import BoardTable from "@/components/BoardTable.vue";
 import CardDialog from "@/components/CardDialog.vue";
 import CardSelectorDialog from "@/components/CardSelectorDialog.vue";

@@ -1,4 +1,4 @@
-import { useBoardDelete } from "@/features/board-delete/useBoardDelete";
+import { useBoardDelete } from "@/features/board/useBoardDelete.ts";
 import { useBoardExport } from "@/features/board-export/useBoardExport";
 
 export function useBoardActions() {

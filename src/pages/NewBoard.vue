@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useBoardStore } from "@/stores/board";
-import { createBoardWithInitialWeek } from "@/features/board-create/createBoard";
+import { createBoardWithInitialWeek } from "@/features/board/createBoard.ts";
 
 const router = useRouter();
 const boardStore = useBoardStore();
