@@ -101,6 +101,7 @@ function handleKeydown(e: KeyboardEvent) {
             @keydown="handleKeydown"
             rows="3"
             placeholder=""
+            data-testid="card-title-input"
             class="field-sizing-content max-h-[80vh] w-full resize-none overflow-auto overflow-x-hidden border-none bg-transparent text-center text-lg font-semibold text-gray-800 outline-none"
           />
         </div>
@@ -111,6 +112,7 @@ function handleKeydown(e: KeyboardEvent) {
             @click="handleSave"
             :disabled="isSaving || !title.trim()"
             class="flex flex-1 items-center justify-center gap-1 bg-green-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+            data-testid="save-card-button"
           >
             <span>{{ mode === "create" ? "Создать" : "Сохранить" }}</span>
             <kbd
@@ -121,6 +123,7 @@ function handleKeydown(e: KeyboardEvent) {
           <button
             @click="handleCancel"
             class="flex flex-1 items-center justify-center gap-1 bg-gray-400 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-500"
+            data-testid="cancel-card-button"
           >
             <span>Отмена</span>
             <kbd

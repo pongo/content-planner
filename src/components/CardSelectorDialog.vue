@@ -81,6 +81,7 @@ function handleOverlayClick() {
             class="max-h-[80vh] w-full overflow-auto overflow-x-hidden rounded border border-gray-300 bg-white px-3 py-2 text-gray-800 outline-none focus:border-gray-800"
             :size="titles.length"
             :disabled="titles.length === 0"
+            data-testid="card-title-select"
             @keydown="handleKeydown"
             @dblclick="handleConfirm"
           >
@@ -95,6 +96,7 @@ function handleOverlayClick() {
             @click="handleConfirm"
             :disabled="!selectedTitle"
             class="flex flex-1 items-center justify-center gap-1 bg-green-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+            data-testid="select-card-title-button"
           >
             <span>Выбрать</span
             ><kbd

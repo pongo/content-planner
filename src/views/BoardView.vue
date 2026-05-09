@@ -78,6 +78,7 @@ watch(
   <div
     v-else-if="boardStore.currentBoard"
     class="flex h-screen flex-col overflow-hidden bg-gray-50"
+    data-testid="board-view"
   >
     <!-- Board Header -->
     <BoardHeader />
@@ -94,7 +95,7 @@ watch(
     />
   </div>
 
-  <div v-else class="flex min-h-screen items-center justify-center">
+  <div v-else class="flex min-h-screen items-center justify-center" data-testid="board-not-found">
     <p class="text-gray-500">Board not found</p>
   </div>
 

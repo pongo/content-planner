@@ -177,6 +177,7 @@ onUnmounted(() => {
               v-if="week.title === 'Categories'"
               class="group flex h-full w-full items-center justify-center text-gray-400 transition-colors"
               title="Добавить карточку"
+              data-testid="add-category-card-button"
               @click="emit('addCard', week.id, 'ALL')"
             >
               <Plus
@@ -187,6 +188,7 @@ onUnmounted(() => {
               v-else
               class="group flex h-full w-full items-center justify-center text-gray-400 transition-colors"
               title="Завершить неделю и вернуть карточки"
+              data-testid="complete-week-button"
               @click="emit('weekComplete', week.id)"
             >
               <Check
@@ -203,6 +205,7 @@ onUnmounted(() => {
             class="relative border-r border-b border-gray-200 bg-gray-50 p-2 align-top last:border-r-0"
             :data-week-id="week.id"
             :data-column="colInfo.key"
+            data-testid="board-cell"
             style="height: 1px"
             @dblclick.exact="emit('addCard', week.id, colInfo.key)"
             @dblclick.ctrl="emit('addCardWithSelector', week.id, colInfo.key)"
@@ -253,6 +256,7 @@ onUnmounted(() => {
             <button
               @click="handleAddWeek"
               class="skip-ink-none flex w-full items-center justify-center py-3 text-sm text-gray-400 select-none hover:underline"
+              data-testid="add-week-button"
             >
               Добавить неделю
             </button>

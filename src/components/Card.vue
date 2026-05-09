@@ -48,6 +48,7 @@ function closeEdit() {
     class="group relative flex w-30 flex-col overflow-hidden rounded-[1px] border-0 border-black/10 shadow-sm transition-shadow select-none"
     :style="{ backgroundColor: colors.base, minHeight: 'var(--card-card-height)' }"
     :data-card-id="card.id"
+    data-testid="board-card"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
     @dblclick.stop="startEdit"
@@ -59,6 +60,7 @@ function closeEdit() {
         @click.stop="handleDelete"
         class="absolute top-0 right-0 rounded p-0.5 text-gray-400 hover:text-red-500"
         title="Удалить"
+        data-testid="delete-card-button"
       >
         <X class="h-2.5 w-3" />
       </button>
