@@ -2,8 +2,8 @@
 import { ref, onMounted } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import { Trash2, Share, Check } from "@lucide/vue";
-import type { BoardRecord } from "@/db/db";
-import { useBoardActions } from "@/features/boards-list/useBoardActions";
+import type { BoardRecord } from "@/db/db.ts";
+import { useBoardActions } from "@/features/boards-list/useBoardActions.ts";
 import { getAllBoardsDB } from "@/db/queries/get-all-boards.ts";
 
 const router = useRouter();

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { useBoardStore } from "@/stores/board";
+import { useBoardStore } from "@/stores/board.ts";
 import { useCardCommands } from "@/features/card/useCardCommands.ts";
 import BoardTable from "@/components/BoardTable.vue";
 import CardDialog from "@/components/CardDialog.vue";
 import CardSelectorDialog from "@/components/CardSelectorDialog.vue";
 import BoardHeader from "@/components/BoardHeader.vue";
-import type { CardRecord } from "@/db/db";
+import type { CardRecord } from "@/db/db.ts";
 
 const props = defineProps<{ slug: string }>();
 

@@ -12,8 +12,8 @@ import {
   makeWeek,
   seedRecords,
   waitFor,
-} from "../../tests/pageTestUtils";
-import { getDB, type CardRecord } from "@/db/db";
+} from "../../../tests/pageTestUtils.ts";
+import { getDB, type CardRecord } from "@/db/db.ts";
 
 type DraggableStubRecord = {
   el: HTMLElement | null;

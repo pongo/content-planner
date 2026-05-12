@@ -6,17 +6,17 @@ const router = createRouter({
     {
       path: "/",
       name: "home",
-      component: () => import("@/pages/BoardsListPage.vue"),
+      component: () => import("@/pages/boards-list/BoardsListPage.vue"),
     },
     {
       path: "/new",
       name: "new-board",
-      component: () => import("@/pages/NewBoardPage.vue"),
+      component: () => import("@/pages/new-board/NewBoardPage.vue"),
     },
     {
       path: "/:slug",
       name: "board",
-      component: () => import("@/pages/BoardPage.vue"),
+      component: () => import("@/pages/board/BoardPage.vue"),
       props: true,
     },
   ],

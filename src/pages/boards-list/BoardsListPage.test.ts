@@ -11,8 +11,8 @@ import {
   makeWeek,
   seedRecords,
   waitFor,
-} from "../../tests/pageTestUtils";
-import { getDB } from "@/db/db";
+} from "../../../tests/pageTestUtils.ts";
+import { getDB } from "@/db/db.ts";
 
 const routerMock = vi.hoisted(() => ({
   push: vi.fn<(path: string) => void>(),
