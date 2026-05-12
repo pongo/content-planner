@@ -43,9 +43,7 @@ export const useBoardStore = defineStore("board", () => {
   });
 
   function getCardsForWeek(weekId: string, column: CardRecord["column"]) {
-    return cards.value
-      .filter((t) => t.weekId === weekId && t.column === column)
-      .toSorted((a, b) => a.title.localeCompare(b.title));
+    return cards.value.filter((t) => t.weekId === weekId && t.column === column);
   }
 
   async function loadBoard(slug: string) {
