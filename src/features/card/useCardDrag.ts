@@ -3,7 +3,7 @@ import type { DraggableEvent } from "vue-draggable-plus";
 import type { CardRecord, WeekRecord } from "@/db/db.ts";
 import { getFirstLine } from "@/shared/utils/card-title.ts";
 import type { useBoardStore } from "@/stores/board.ts";
-import { saveCellsCardsDB } from "@/db/commands/save-cell-cards.ts";
+import { saveCellsCardsDB, type Cell } from "@/db/commands/save-cell-cards.ts";
 
 type BoardStore = ReturnType<typeof useBoardStore>;
 type CardColumn = CardRecord["column"];
@@ -67,19 +67,24 @@ export function useCardDrag(options: UseCardDragOptions) {
       return;
     }
 
-    const sourceKey = cellKey(weekId, column);
-    const sourceCards = cellLists.value[sourceKey] ?? [];
+    const cells: Cell[] = [sourceCell()];
+    if (e.to !== e.from) cells.push(targetCell());
 
-    if (e.to === e.from) {
-      await saveCellsCardsDB(weekId, column, sourceCards);
-      await options.boardStore.reloadBoard();
-      return;
+    await saveCellsCardsDB(cells);
+    await options.boardStore.reloadBoard();
+
+    function sourceCell(): Cell {
+      const sourceKey = cellKey(weekId, column);
+      const sourceCards = cellLists.value[sourceKey] ?? [];
+      return { weekId, column, cards: sourceCards };
     }
 
-    const targetKey = cellKey(targetWeekId, targetCol);
-    const targetCards = cellLists.value[targetKey] ?? [];
-    await saveCellsCardsDB(weekId, column, sourceCards, targetWeekId, targetCol, targetCards);
-    await options.boardStore.reloadBoard();
+    function targetCell(): Cell {
+      if (!targetWeekId || !targetCol) throw new Error("Invalid target");
+      const targetKey = cellKey(targetWeekId, targetCol);
+      const targetCards = cellLists.value[targetKey] ?? [];
+      return { weekId: targetWeekId, column: targetCol, cards: targetCards };
+    }
   }
 
   watch([options.weeks, () => options.boardStore.cards], () => syncCellLists(), {
