@@ -1,4 +1,4 @@
-import type { BoardRecord } from "@/shared/db/db.ts";
+import type { BoardRecord } from "@/db/db.ts";
 import { deleteBoard as deleteBoardRecord } from "@/entities/board.ts";
 
 export function useBoardDelete() {

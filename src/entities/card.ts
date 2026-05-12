@@ -1,5 +1,5 @@
-import { getDB } from "@/shared/db/db";
-import type { CardRecord } from "@/shared/db/db";
+import { getDB } from "@/db/db";
+import type { CardRecord } from "@/db/db";
 
 type CardColumn = CardRecord["column"];
 

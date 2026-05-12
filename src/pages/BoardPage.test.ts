@@ -13,7 +13,7 @@ import {
   seedRecords,
   waitFor,
 } from "../../tests/pageTestUtils";
-import { getDB, type CardRecord } from "@/shared/db/db";
+import { getDB, type CardRecord } from "@/db/db";
 
 type DraggableStubRecord = {
   el: HTMLElement | null;

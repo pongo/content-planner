@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import NewBoardPage from "./NewBoardPage.vue";
 import { clearDB, waitFor } from "../../tests/pageTestUtils";
-import { getDB } from "@/shared/db/db";
+import { getDB } from "@/db/db";
 
 const routerMock = vi.hoisted(() => ({
   push: vi.fn<(path: string) => void>(),

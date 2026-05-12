@@ -6,7 +6,7 @@ import BoardTable from "@/components/BoardTable.vue";
 import CardDialog from "@/components/CardDialog.vue";
 import CardSelectorDialog from "@/components/CardSelectorDialog.vue";
 import BoardHeader from "@/components/BoardHeader.vue";
-import type { CardRecord } from "@/shared/db/db";
+import type { CardRecord } from "@/db/db";
 
 const props = defineProps<{ slug: string }>();
 

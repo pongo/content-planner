@@ -1,4 +1,4 @@
-import { requestPersistentStorage } from "@/shared/db/db.ts";
+import { requestPersistentStorage } from "@/db/db.ts";
 import { createBoard, getAllBoards } from "@/entities/board.ts";
 import { createWeek } from "@/entities/week.ts";
 import { generateUniqueSlug } from "@/shared/utils/slug.ts";

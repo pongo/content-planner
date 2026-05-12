@@ -1,5 +1,5 @@
-import { getDB } from "@/shared/db/db";
-import type { BoardRecord } from "@/shared/db/db";
+import { getDB } from "@/db/db";
+import type { BoardRecord } from "@/db/db";
 
 export async function getAllBoards(): Promise<BoardRecord[]> {
   const db = await getDB();

@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import type { BoardRecord } from "@/shared/db/db";
+import type { BoardRecord } from "@/db/db";
 import { loadAllCardsForBoard } from "@/entities/board-queries";
 import { exportBoardToMarkdown } from "@/features/board-export/exportMarkdown";
 

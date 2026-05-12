@@ -1,4 +1,4 @@
-import type { CardRecord } from "@/shared/db/db.ts";
+import type { CardRecord } from "@/db/db.ts";
 import * as cardsApi from "@/entities/card.ts";
 import type { useBoardStore } from "@/stores/board.ts";
 

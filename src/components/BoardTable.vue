@@ -5,7 +5,7 @@ import { useBoardStore } from "@/stores/board";
 import Card from "@/components/Card.vue";
 import { Plus, Check } from "@lucide/vue";
 import { useCardDrag } from "@/features/card/useCardDrag.ts";
-import type { CardRecord, WeekRecord } from "@/shared/db/db";
+import type { CardRecord, WeekRecord } from "@/db/db";
 
 const props = defineProps<{
   weeks: WeekRecord[];

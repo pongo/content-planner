@@ -1,4 +1,4 @@
-import type { CardRecord, WeekRecord } from "@/shared/db/db";
+import type { CardRecord, WeekRecord } from "@/db/db";
 import { getWeeksByBoard } from "@/entities/week";
 import { getCardsByWeek } from "@/entities/card";
 

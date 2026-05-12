@@ -2,7 +2,7 @@ import { flushPromises } from "@vue/test-utils";
 import { createBoard } from "@/entities/board";
 import { createCard } from "@/entities/card";
 import { createWeek } from "@/entities/week";
-import { getDB, type BoardRecord, type CardRecord, type WeekRecord } from "@/shared/db/db";
+import { getDB, type BoardRecord, type CardRecord, type WeekRecord } from "@/db/db";
 
 export async function clearDB() {
   const db = await getDB();

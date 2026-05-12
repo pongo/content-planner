@@ -5,7 +5,7 @@ import { useCardCommands } from "@/features/card/useCardCommands.ts";
 import { generatePastelColor } from "@/shared/utils/pastelColor";
 import CardDialog from "@/components/CardDialog.vue";
 import { X, Copy } from "@lucide/vue";
-import type { CardRecord } from "@/shared/db/db";
+import type { CardRecord } from "@/db/db";
 import { parseTitle } from "@/shared/utils/card-title";
 
 // import { useAppVariants } from "@/variants.ts";

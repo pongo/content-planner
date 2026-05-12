@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import type { BoardRecord, WeekRecord, CardRecord } from "@/shared/db/db";
+import type { BoardRecord, WeekRecord, CardRecord } from "@/db/db";
 import * as boardsApi from "@/entities/board";
 import * as weeksApi from "@/entities/week";
 import { loadCardsForWeeks } from "@/entities/board-queries";

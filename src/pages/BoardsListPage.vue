@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import { Trash2, Share, Check } from "@lucide/vue";
-import type { BoardRecord } from "@/shared/db/db";
+import type { BoardRecord } from "@/db/db";
 import { useBoardActions } from "@/features/boards-list/useBoardActions";
 import { getAllBoards } from "@/entities/board";
 
