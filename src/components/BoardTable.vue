@@ -9,7 +9,6 @@ import type { CardRecord, WeekRecord } from "@/db/db";
 
 const props = defineProps<{
   weeks: WeekRecord[];
-  getCards: (weekId: string, column: CardRecord["column"]) => CardRecord[];
 }>();
 
 const emit = defineEmits<{
@@ -41,7 +40,6 @@ const isBoardEmpty = computed(() => boardStore.cards.length === 0);
 
 const { cellLists, cellKey, getWeekColumns, handleDragStart, handleDragEnd } = useCardDrag({
   weeks: toRef(props, "weeks"),
-  getCards: props.getCards,
   boardStore,
   addCard: (weekId, column, text) => emit("addCard", weekId, column, text),
 });

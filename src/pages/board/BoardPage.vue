@@ -86,10 +86,6 @@ function useCardSelectorDialog(
   return { draft, open, close, select };
 }
 
-function getCards(weekId: string, column: CardRecord["column"]) {
-  return boardStore.getCardsForWeek(weekId, column);
-}
-
 async function handleWeekDelete(id: string) {
   await boardStore.deleteWeek(id);
 }
@@ -121,7 +117,6 @@ watch(
     <!-- Board Table -->
     <BoardTable
       :weeks="boardStore.weeks"
-      :get-cards="getCards"
       @add-card="addCardDialog.open"
       @add-card-with-selector="cardSelectorDialog.open"
       @add-week="addWeek"

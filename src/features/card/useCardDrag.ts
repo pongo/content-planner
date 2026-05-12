@@ -10,7 +10,6 @@ type CardColumn = CardRecord["column"];
 
 interface UseCardDragOptions {
   weeks: Ref<WeekRecord[]>;
-  getCards: (weekId: string, column: CardColumn) => CardRecord[];
   boardStore: BoardStore;
   addCard: (weekId: string, column: CardColumn, text?: string) => void;
 }
@@ -35,7 +34,7 @@ export function useCardDrag(options: UseCardDragOptions) {
       const colsToSync = getWeekColumns(week);
       for (const colInfo of colsToSync) {
         const key = cellKey(week.id, colInfo.key);
-        const newCards = [...options.getCards(week.id, colInfo.key)];
+        const newCards = [...options.boardStore.getCardsForWeek(week.id, colInfo.key)];
         if (!cellLists.value[key]) {
           cellLists.value[key] = newCards;
         } else {
