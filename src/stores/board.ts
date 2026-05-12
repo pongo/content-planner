@@ -1,10 +1,15 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { BoardRecord, WeekRecord, CardRecord } from "@/db/db";
-import * as boardsApi from "@/entities/board";
-import * as weeksApi from "@/entities/week";
-import { loadCardsForWeeks } from "@/entities/board-queries";
 import { getFirstLine } from "@/shared/utils/card-title";
+import { getWeeksByBoardDB } from "@/db/queries/get-weeks-by-board.ts";
+import { getAllBoardsDB } from "@/db/queries/get-all-boards.ts";
+import { createWeekDB } from "@/db/commands/create-week.ts";
+import { getCardsForWeeksDB } from "@/db/queries/get-cards-for-weeks.ts";
+import { getBoardBySlugDB } from "@/db/queries/get-board-by-slug.ts";
+import { updateBoardDB } from "@/db/commands/update-board.ts";
+import { deleteWeekDB } from "@/db/commands/delete-week.ts";
+import { completeWeekDB } from "@/db/commands/complete-week.ts";
 
 const COLUMNS: CardRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -46,7 +51,7 @@ export const useBoardStore = defineStore("board", () => {
   async function loadBoard(slug: string) {
     loading.value = true;
     try {
-      const board = await boardsApi.getBoardBySlug(slug);
+      const board = await getBoardBySlugDB(slug);
       if (!board) throw new Error("Board not found");
       currentBoard.value = board;
       await reloadBoard();
@@ -58,8 +63,8 @@ export const useBoardStore = defineStore("board", () => {
   async function reloadBoard() {
     if (!currentBoard.value) return;
     const boardId = currentBoard.value.id;
-    const weeksList = await weeksApi.getWeeksByBoard(boardId);
-    const allCards = await loadCardsForWeeks(weeksList);
+    const weeksList = await getWeeksByBoardDB(boardId);
+    const allCards = await getCardsForWeeksDB(weeksList);
     weeks.value = weeksList;
     cards.value = allCards;
   }
@@ -72,7 +77,7 @@ export const useBoardStore = defineStore("board", () => {
     currentBoard.value.title = title;
 
     try {
-      await boardsApi.updateBoard(currentBoard.value.id, { title });
+      await updateBoardDB(currentBoard.value.id, { title });
     } catch (error) {
       // Rollback on error
       currentBoard.value.title = previousTitle;
@@ -89,15 +94,15 @@ export const useBoardStore = defineStore("board", () => {
   async function createWeek(title: string): Promise<void> {
     if (!currentBoard.value) return;
     const id = crypto.randomUUID();
-    await weeksApi.createWeek({ id, boardId: currentBoard.value.id, title });
-    const week = await weeksApi
-      .getWeeksByBoard(currentBoard.value.id)
-      .then((s) => s.find((x) => x.id === id));
+    await createWeekDB({ id, boardId: currentBoard.value.id, title });
+    const week = await getWeeksByBoardDB(currentBoard.value.id).then((s) =>
+      s.find((x) => x.id === id),
+    );
     if (week) weeks.value.push(week);
   }
 
   async function deleteWeek(weekId: string): Promise<void> {
-    await weeksApi.deleteWeek(weekId);
+    await deleteWeekDB(weekId);
     weeks.value = weeks.value.filter((s) => s.id !== weekId);
     cards.value = cards.value.filter((t) => t.weekId !== weekId);
   }
@@ -106,12 +111,12 @@ export const useBoardStore = defineStore("board", () => {
     const categoriesWeek = weeks.value.find((s) => s.title === "Categories");
     if (!categoriesWeek) return;
 
-    await weeksApi.completeWeek(weekId, categoriesWeek.id);
+    await completeWeekDB(weekId, categoriesWeek.id);
     await reloadBoard();
   }
 
   async function loadAllBoards(): Promise<BoardRecord[]> {
-    return boardsApi.getAllBoards();
+    return getAllBoardsDB();
   }
 
   return {

@@ -22,6 +22,8 @@ export interface CardRecord {
   order: number;
 }
 
+export type CardColumn = CardRecord["column"];
+
 export interface ContentPlannerDB extends DBSchema {
   boards: {
     key: string;

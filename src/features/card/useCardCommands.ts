@@ -1,5 +1,8 @@
+import { createCardDB } from "@/db/commands/create-card.ts";
+import { deleteCardDB } from "@/db/commands/delete-card.ts";
+import { updateCardDB } from "@/db/commands/update-card.ts";
 import type { CardRecord } from "@/db/db.ts";
-import * as cardsApi from "@/entities/card.ts";
+import { getCardsByWeekDB } from "@/db/queries/get-cards-by-week.ts";
 import type { useBoardStore } from "@/stores/board.ts";
 
 type BoardStore = ReturnType<typeof useBoardStore>;
@@ -11,10 +14,10 @@ export function useCardCommands(boardStore: BoardStore) {
     column: CardRecord["column"],
   ): Promise<void> {
     const id = crypto.randomUUID();
-    await cardsApi.createCard({ id, weekId, column, title });
-    const card = await cardsApi
-      .getCardsByWeek(weekId, column)
-      .then((cards) => cards.find((item) => item.id === id));
+    await createCardDB({ id, weekId, column, title });
+    const card = await getCardsByWeekDB(weekId, column).then((cards) =>
+      cards.find((item) => item.id === id),
+    );
     if (card) boardStore.cards.push(card);
   }
 
@@ -27,7 +30,7 @@ export function useCardCommands(boardStore: BoardStore) {
       order?: number;
     },
   ): Promise<void> {
-    await cardsApi.updateCard(cardId, updates);
+    await updateCardDB(cardId, updates);
     const card = boardStore.cards.find((item) => item.id === cardId);
     if (!card) return;
 
@@ -38,7 +41,7 @@ export function useCardCommands(boardStore: BoardStore) {
   }
 
   async function deleteCard(cardId: string): Promise<void> {
-    await cardsApi.deleteCard(cardId);
+    await deleteCardDB(cardId);
     boardStore.cards = boardStore.cards.filter((item) => item.id !== cardId);
   }
 

@@ -4,7 +4,7 @@ import { useRouter, RouterLink } from "vue-router";
 import { Trash2, Share, Check } from "@lucide/vue";
 import type { BoardRecord } from "@/db/db";
 import { useBoardActions } from "@/features/boards-list/useBoardActions";
-import { getAllBoards } from "@/entities/board";
+import { getAllBoardsDB } from "@/db/queries/get-all-boards.ts";
 
 const router = useRouter();
 const { exportBoard, deleteBoard, isExported } = useBoardActions();
@@ -13,7 +13,7 @@ const boards = ref<BoardRecord[]>([]);
 const loading = ref(true);
 
 onMounted(async () => {
-  boards.value = await getAllBoards();
+  boards.value = await getAllBoardsDB();
   loading.value = false;
 });
 
