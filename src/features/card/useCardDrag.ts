@@ -3,7 +3,7 @@ import type { DraggableEvent } from "vue-draggable-plus";
 import type { CardRecord, WeekRecord } from "@/db/db.ts";
 import { getFirstLine } from "@/shared/utils/card-title.ts";
 import type { useBoardStore } from "@/stores/board.ts";
-import { saveCellCardsDB, saveBothCellsCardsDB } from "@/db/commands/save-cell-cards.ts";
+import { saveCellsCardsDB } from "@/db/commands/save-cell-cards.ts";
 
 type BoardStore = ReturnType<typeof useBoardStore>;
 type CardColumn = CardRecord["column"];
@@ -71,14 +71,14 @@ export function useCardDrag(options: UseCardDragOptions) {
     const sourceCards = cellLists.value[sourceKey] ?? [];
 
     if (e.to === e.from) {
-      await saveCellCardsDB(weekId, column, sourceCards);
+      await saveCellsCardsDB(weekId, column, sourceCards);
       await options.boardStore.reloadBoard();
       return;
     }
 
     const targetKey = cellKey(targetWeekId, targetCol);
     const targetCards = cellLists.value[targetKey] ?? [];
-    await saveBothCellsCardsDB(weekId, column, sourceCards, targetWeekId, targetCol, targetCards);
+    await saveCellsCardsDB(weekId, column, sourceCards, targetWeekId, targetCol, targetCards);
     await options.boardStore.reloadBoard();
   }
 
