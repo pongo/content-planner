@@ -14,12 +14,11 @@ export async function saveCellsCardsDB(cells: Cell[]): Promise<void> {
   const tx = db.transaction("cards", "readwrite");
   const store = tx.objectStore("cards");
 
-  for (const cell of cells) {
-    for (let i = 0; i < cell.cards.length; i++) {
-      const t = { ...cell.cards[i]!, order: i, weekId: cell.weekId, column: cell.column };
-      await store.put(t);
-    }
-  }
+  const puts = cells.flatMap((cell) =>
+    cell.cards.map((card, order) =>
+      store.put({ ...card, order, weekId: cell.weekId, column: cell.column }),
+    ),
+  );
 
-  await tx.done;
+  await Promise.all([...puts, tx.done]);
 }
