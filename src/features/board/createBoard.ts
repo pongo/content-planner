@@ -1,7 +1,7 @@
 import { createBoardDB } from "@/db/commands/create-board.ts";
 import { createWeekDB } from "@/db/commands/create-week.ts";
-import { requestPersistentStorage } from "@/db/db.ts";
 import { getAllBoardsDB } from "@/db/queries/get-all-boards.ts";
+import { requestPersistentStorage } from "@/shared/utils/db-utils.ts";
 import { generateUniqueSlug } from "@/shared/utils/slug.ts";
 
 export async function createBoardWithInitialWeek(title: string): Promise<string> {
