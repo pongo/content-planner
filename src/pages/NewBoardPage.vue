@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { useBoardStore } from "@/stores/board";
 import { createBoardWithInitialWeek } from "@/features/board/createBoard.ts";
 
 const router = useRouter();
-const boardStore = useBoardStore();
 
 const title = ref("");
 const inputRef = ref<HTMLInputElement | null>(null);
@@ -22,7 +20,6 @@ async function handleCreate() {
   isCreating.value = true;
   try {
     const slug = await createBoardWithInitialWeek(trimmed);
-    await boardStore.loadBoard(slug);
     router.push(`/${slug}`);
   } catch (e) {
     console.error("Failed to create board:", e);
