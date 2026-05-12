@@ -115,7 +115,7 @@ onUnmounted(() => {
             </button>
           </td>
 
-          <!-- Card Cells with VueDraggable -->
+          <!-- Card Cells -->
           <td
             v-for="colInfo in getWeekColumns(week)"
             :key="colInfo.key"
