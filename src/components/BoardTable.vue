@@ -4,8 +4,8 @@ import { VueDraggable } from "vue-draggable-plus";
 import Card from "@/components/Card.vue";
 import { Plus, Check } from "@lucide/vue";
 import { useCardDrag, type CardMovePayload } from "@/features/card/useCardDrag.ts";
-import type { BoardRow } from "@/domain/card.ts";
 import type { CardColumn } from "@/db/db";
+import type { BoardRow } from "@/domain/cell.ts";
 
 const props = defineProps<{
   rows: BoardRow[];

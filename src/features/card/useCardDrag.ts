@@ -1,6 +1,7 @@
 import { ref, watch, type Ref } from "vue";
 import type { DraggableEvent } from "vue-draggable-plus";
-import type { BoardRow, Card, CellCardsUpdate, CellLocation } from "@/domain/card.ts";
+import type { Card } from "@/domain/card.ts";
+import type { BoardRow, CellCardsUpdate, CellLocation } from "@/domain/cell.ts";
 import type { CardColumn } from "@/db/db.ts";
 
 export interface CardMovePayload {
