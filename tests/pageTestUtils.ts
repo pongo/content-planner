@@ -1,8 +1,8 @@
 import { flushPromises } from "@vue/test-utils";
-import { createBoard } from "@/entities/board";
-import { createCard } from "@/entities/card";
-import { createWeek } from "@/entities/week";
-import { getDB, type BoardRecord, type CardRecord, type WeekRecord } from "@/shared/db/db";
+import { getDB, type BoardRecord, type CardRecord, type WeekRecord } from "@/db/db";
+import { createBoardDB } from "@/db/commands/create-board.ts";
+import { createWeekDB } from "@/db/commands/create-week.ts";
+import { createCardDB } from "@/db/commands/create-card.ts";
 
 export async function clearDB() {
   const db = await getDB();
@@ -19,13 +19,13 @@ export async function seedRecords(records: {
   cards?: CardRecord[];
 }) {
   for (const board of records.boards ?? []) {
-    await createBoard({ id: board.id, title: board.title, slug: board.slug });
+    await createBoardDB({ id: board.id, title: board.title, slug: board.slug });
   }
   for (const week of records.weeks ?? []) {
-    await createWeek({ id: week.id, boardId: week.boardId, title: week.title });
+    await createWeekDB({ id: week.id, boardId: week.boardId, title: week.title });
   }
   for (const card of records.cards ?? []) {
-    await createCard({
+    await createCardDB({
       id: card.id,
       weekId: card.weekId,
       column: card.column,

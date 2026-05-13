@@ -3,8 +3,9 @@ import "fake-indexeddb/auto";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, h } from "vue";
+import { defineComponent, h, type PropType } from "vue";
 import BoardPage from "./BoardPage.vue";
+import type { Card } from "@/domain/card.ts";
 import {
   clearDB,
   makeBoard,
@@ -12,13 +13,13 @@ import {
   makeWeek,
   seedRecords,
   waitFor,
-} from "../../tests/pageTestUtils";
-import { getDB, type CardRecord } from "@/shared/db/db";
+} from "../../../tests/pageTestUtils.ts";
+import { getDB, type CardRecord } from "@/db/db.ts";
 
 type DraggableStubRecord = {
   el: HTMLElement | null;
   props: {
-    modelValue: CardRecord[];
+    modelValue: Card[];
   };
   attrs: Record<string, unknown>;
 };
@@ -45,14 +46,14 @@ const VueDraggableStub = defineComponent({
   inheritAttrs: false,
   props: {
     modelValue: {
-      type: Array<CardRecord>,
+      type: Array as PropType<Card[]>,
       required: true,
     },
   },
   setup(props, { slots, attrs }) {
     const record: DraggableStubRecord = {
       el: null,
-      props: props as { modelValue: CardRecord[] },
+      props: props as { modelValue: Card[] },
       attrs,
     };
     draggableStubs.push(record);

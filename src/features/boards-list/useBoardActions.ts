@@ -1,5 +1,5 @@
 import { useBoardDelete } from "@/features/board/useBoardDelete.ts";
-import { useBoardExport } from "@/features/board-export/useBoardExport";
+import { useBoardExport } from "@/features/board/board-export/useBoardExport";
 
 export function useBoardActions() {
   const { exportBoard, isExported } = useBoardExport();

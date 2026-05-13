@@ -4,8 +4,15 @@ import { mount, flushPromises } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
 import BoardsListPage from "./BoardsListPage.vue";
-import { clearDB, makeBoard, seedRecords, waitFor } from "../../tests/pageTestUtils";
-import { getDB } from "@/shared/db/db";
+import {
+  clearDB,
+  makeBoard,
+  makeCard,
+  makeWeek,
+  seedRecords,
+  waitFor,
+} from "../../../tests/pageTestUtils.ts";
+import { getDB } from "@/db/db.ts";
 
 const routerMock = vi.hoisted(() => ({
   push: vi.fn<(path: string) => void>(),
@@ -97,8 +104,25 @@ describe("BoardsListPage", () => {
   });
 
   it("deletes a confirmed board from UI and IndexedDB", async () => {
-    await seedRecords({ boards: [makeBoard()] });
+    await seedRecords({
+      boards: [makeBoard()],
+      weeks: [makeWeek(), makeWeek({ id: "week-1", title: "Неделя 1", order: 1 })],
+      cards: [
+        makeCard({ id: "card-category", title: "Идея из категорий" }),
+        makeCard({
+          id: "card-monday",
+          weekId: "week-1",
+          column: "MON",
+          title: "Пост в понедельник",
+        }),
+      ],
+    });
     const wrapper = mountPage();
+
+    const db = await getDB();
+    expect(await db.getAll("boards")).not.toHaveLength(0);
+    expect(await db.getAll("cards")).not.toHaveLength(0);
+    expect(await db.getAll("weeks")).not.toHaveLength(0);
 
     await waitFor(() => {
       expect(wrapper.findAll("[data-testid='board-list-item']")).toHaveLength(1);
@@ -108,8 +132,9 @@ describe("BoardsListPage", () => {
       expect(wrapper.findAll("[data-testid='board-list-item']")).toHaveLength(0);
     });
 
-    const db = await getDB();
     expect(await db.getAll("boards")).toHaveLength(0);
+    expect(await db.getAll("cards")).toHaveLength(0);
+    expect(await db.getAll("weeks")).toHaveLength(0);
   });
 
   it("keeps a board when deletion is cancelled", async () => {

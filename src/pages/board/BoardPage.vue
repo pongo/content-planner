@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { useBoardStore } from "@/stores/board";
-import { useCardCommands } from "@/features/card/useCardCommands.ts";
+import { useBoardStore } from "@/stores/board.ts";
 import BoardTable from "@/components/BoardTable.vue";
 import CardDialog from "@/components/CardDialog.vue";
 import CardSelectorDialog from "@/components/CardSelectorDialog.vue";
 import BoardHeader from "@/components/BoardHeader.vue";
-import type { CardRecord } from "@/shared/db/db";
+import type { CardRecord } from "@/db/db.ts";
+import { toCellUpdates, type CardMovePayload } from "@/features/card/useCardDrag.ts";
 
 const props = defineProps<{ slug: string }>();
 
@@ -22,8 +22,7 @@ type CardSelectorDraft = {
 };
 
 const boardStore = useBoardStore();
-const { createCard } = useCardCommands(boardStore);
-const addCardDialog = useAddCardDialog(createCard);
+const addCardDialog = useAddCardDialog(boardStore.createCard);
 const cardSelectorDialog = useCardSelectorDialog(addCardDialog.open);
 
 async function addWeek(title: string) {
@@ -86,16 +85,20 @@ function useCardSelectorDialog(
   return { draft, open, close, select };
 }
 
-function getCards(weekId: string, column: CardRecord["column"]) {
-  return boardStore.getCardsForWeek(weekId, column);
-}
-
 async function handleWeekDelete(id: string) {
   await boardStore.deleteWeek(id);
 }
 
 async function handleWeekComplete(id: string) {
   await boardStore.completeWeek(id);
+}
+
+async function handleCardUpdate(id: string, title: string) {
+  await boardStore.updateCard(id, { title });
+}
+
+async function handleCardsMove(payload: CardMovePayload) {
+  await boardStore.saveCardCells(toCellUpdates(payload));
 }
 
 watch(
@@ -120,13 +123,16 @@ watch(
 
     <!-- Board Table -->
     <BoardTable
-      :weeks="boardStore.weeks"
-      :get-cards="getCards"
+      :rows="boardStore.boardRows"
+      :columns="boardStore.columns"
       @add-card="addCardDialog.open"
       @add-card-with-selector="cardSelectorDialog.open"
       @add-week="addWeek"
       @week-delete="handleWeekDelete"
       @week-complete="handleWeekComplete"
+      @card-delete="boardStore.deleteCard"
+      @card-update="handleCardUpdate"
+      @cards-move="handleCardsMove"
     />
   </div>
 

@@ -3,7 +3,7 @@ import { ref, watch } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import { Trash2, Share, Check } from "@lucide/vue";
 import { useBoardStore } from "@/stores/board";
-import type { BoardRecord } from "@/shared/db/db";
+import type { BoardRecord } from "@/db/db";
 import { useBoardActions } from "@/features/boards-list/useBoardActions";
 
 const { open } = defineProps<{ open: boolean }>();

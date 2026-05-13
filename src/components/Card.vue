@@ -1,39 +1,32 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useBoardStore } from "@/stores/board";
-import { useCardCommands } from "@/features/card/useCardCommands.ts";
 import { generatePastelColor } from "@/shared/utils/pastelColor";
 import CardDialog from "@/components/CardDialog.vue";
 import { X, Copy } from "@lucide/vue";
-import type { CardRecord } from "@/shared/db/db";
-import { parseTitle } from "@/shared/utils/card-title";
+import type { Card } from "@/domain/card.ts";
 
 // import { useAppVariants } from "@/variants.ts";
 // const { variants } = useAppVariants();
 
-const props = defineProps<{ card: CardRecord }>();
+const props = defineProps<{ card: Card }>();
 
-const boardStore = useBoardStore();
-const { deleteCard, updateCard } = useCardCommands(boardStore);
+const emit = defineEmits<{
+  delete: [id: string];
+  update: [id: string, title: string];
+}>();
+
 const isEditing = ref(false);
 const isSaving = ref(false);
 const isHovered = ref(false);
 
 const colors = computed(() => {
-  const base = generatePastelColor(props.card.title);
+  const base = generatePastelColor(props.card.titleInfo.firstLine);
   return { base, accent: `color-mix(in srgb, ${base}, black 15%)` };
-});
-
-const titleInfo = computed(() => parseTitle(props.card.title));
-
-const isDuplicate = computed(() => {
-  if (props.card.title.startsWith("-")) return false;
-  return boardStore.duplicateFirstLines.has(titleInfo.value.firstLine);
 });
 
 function handleDelete() {
   if (confirm("Удалить?")) {
-    deleteCard(props.card.id);
+    emit("delete", props.card.id);
   }
 }
 
@@ -50,7 +43,7 @@ async function handleUpdateCard(title: string) {
 
   isSaving.value = true;
   try {
-    await updateCard(props.card.id, { title });
+    emit("update", props.card.id, title);
     closeEdit();
   } catch (e) {
     console.error("Failed to save card:", e);
@@ -84,7 +77,7 @@ async function handleUpdateCard(title: string) {
 
       <!-- Duplicate icon -->
       <div
-        v-if="isDuplicate"
+        v-if="card.isDuplicate"
         class="absolute top-0.5 left-1 text-gray-500/50"
         title="У карточки есть дубликат"
       >
@@ -94,15 +87,15 @@ async function handleUpdateCard(title: string) {
       <!-- Title -->
       <div class="w-full text-center">
         <p class="px-1 text-xs leading-tight font-semibold text-gray-800">
-          {{ titleInfo.firstLine }}
+          {{ card.titleInfo.firstLine }}
         </p>
-        <template v-if="titleInfo.isMultiline">
+        <template v-if="card.titleInfo.isMultiline">
           <hr
             class="my-1 border-black/10"
-            :class="{ 'border-t-[3px] border-double': titleInfo.isPermanent }"
+            :class="{ 'border-t-[3px] border-double': card.titleInfo.isPermanent }"
           />
           <p class="px-1 text-xs leading-tight whitespace-pre-wrap text-gray-800 italic">
-            {{ titleInfo.remainingLines }}
+            {{ card.titleInfo.remainingLines }}
           </p>
         </template>
       </div>

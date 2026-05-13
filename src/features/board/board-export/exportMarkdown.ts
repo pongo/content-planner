@@ -1,4 +1,4 @@
-import type { BoardRecord, CardRecord } from "@/shared/db/db";
+import type { BoardRecord, CardRecord } from "@/db/db.ts";
 
 export function exportBoardToMarkdown(board: BoardRecord, cards: CardRecord[]): string {
   const lines: string[] = [];
