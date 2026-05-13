@@ -1,106 +1,120 @@
 import { ref, watch, type Ref } from "vue";
 import type { DraggableEvent } from "vue-draggable-plus";
-import type { CardRecord, WeekRecord } from "@/db/db.ts";
-import { getFirstLine } from "@/shared/utils/card-title.ts";
-import type { useBoardStore } from "@/stores/board.ts";
-import { saveCellsCardsDB, type Cell } from "@/db/commands/save-cell-cards.ts";
+import type { BoardRow, Card, CellCardsUpdate, CellLocation } from "@/domain/card.ts";
+import type { CardColumn } from "@/db/db.ts";
 
-type BoardStore = ReturnType<typeof useBoardStore>;
-type CardColumn = CardRecord["column"];
+export interface CardMovePayload {
+  source: CellLocation;
+  target: CellLocation;
+  sourceCardIds: string[];
+  targetCardIds: string[];
+}
 
 interface UseCardDragOptions {
-  weeks: Ref<WeekRecord[]>;
-  boardStore: BoardStore;
-  addCard: (weekId: string, column: CardColumn, text?: string) => void;
+  rows: Ref<BoardRow[]>;
+  moveCards: (payload: CardMovePayload) => void | Promise<void>;
+  copyCard: (weekId: string, column: CardColumn, text: string) => void;
 }
 
 export function useCardDrag(options: UseCardDragOptions) {
-  const cellLists = ref<Record<string, CardRecord[]>>({});
-  const draggedCard = ref<CardRecord | null>(null);
+  const cellLists = ref<Record<string, Card[]>>({});
+  const draggedCard = ref<Card | null>(null);
 
   function cellKey(weekId: string, column: CardColumn) {
     return `${weekId}:${column}`;
   }
 
-  function getWeekColumns(week: WeekRecord): { key: CardColumn; colspan?: number }[] {
-    if (week.title === "Categories") {
-      return [{ key: "ALL", colspan: 7 }];
-    }
-    return options.boardStore.columns.map((column) => ({ key: column }));
-  }
-
   function syncCellLists() {
-    for (const week of options.weeks.value) {
-      const colsToSync = getWeekColumns(week);
-      for (const colInfo of colsToSync) {
-        const key = cellKey(week.id, colInfo.key);
-        const newCards = [...options.boardStore.getCardsForWeek(week.id, colInfo.key)];
+    const activeKeys = new Set<string>();
+
+    for (const row of options.rows.value) {
+      for (const cell of row.cells) {
+        const key = cellKey(cell.weekId, cell.column);
+        activeKeys.add(key);
         if (!cellLists.value[key]) {
-          cellLists.value[key] = newCards;
+          cellLists.value[key] = [...cell.cards];
         } else {
           const existing = cellLists.value[key]!;
           existing.length = 0;
-          existing.push(...newCards);
+          existing.push(...cell.cards);
         }
       }
+    }
+
+    for (const key of Object.keys(cellLists.value)) {
+      if (!activeKeys.has(key)) delete cellLists.value[key];
     }
   }
 
   function handleDragStart(e: DraggableEvent) {
     const cardId = (e.item as HTMLElement).dataset.cardId;
-    if (cardId) {
-      draggedCard.value = options.boardStore.cards.find((card) => card.id === cardId) ?? null;
-    }
+    if (!cardId) return;
+
+    draggedCard.value =
+      options.rows.value
+        .flatMap((row) => row.cells)
+        .flatMap((cell) => cell.cards)
+        .find((card) => card.id === cardId) ?? null;
   }
 
-  async function handleDragEnd(e: DraggableEvent, weekId: string, column: CardColumn) {
+  async function handleDragEnd(e: DraggableEvent, source: CellLocation) {
     const dragged = draggedCard.value;
     draggedCard.value = null;
 
-    const { targetWeekId, targetCol } = getDragEndTargets(e);
-    if (!targetWeekId || !targetCol) return;
-
-    if (dragged && getOriginalEvent(e)?.ctrlKey) {
+    const target = getDragEndTarget(e);
+    if (!target) {
       syncCellLists();
-      options.addCard(targetWeekId, targetCol, getFirstLine(dragged.title));
       return;
     }
 
-    const cells: Cell[] = [sourceCell()];
-    if (e.to !== e.from) cells.push(targetCell());
-
-    await saveCellsCardsDB(cells);
-    await options.boardStore.reloadBoard();
-
-    function sourceCell(): Cell {
-      const sourceKey = cellKey(weekId, column);
-      const sourceCards = cellLists.value[sourceKey] ?? [];
-      return { weekId, column, cards: sourceCards };
+    if (dragged && getOriginalEvent(e)?.ctrlKey) {
+      syncCellLists();
+      options.copyCard(target.weekId, target.column, dragged.titleInfo.firstLine);
+      return;
     }
 
-    function targetCell(): Cell {
-      if (!targetWeekId || !targetCol) throw new Error("Invalid target");
-      const targetKey = cellKey(targetWeekId, targetCol);
-      const targetCards = cellLists.value[targetKey] ?? [];
-      return { weekId: targetWeekId, column: targetCol, cards: targetCards };
+    await options.moveCards({
+      source,
+      target,
+      sourceCardIds: getCardIds(source),
+      targetCardIds: getCardIds(target),
+    });
+
+    function getCardIds(location: CellLocation) {
+      return (cellLists.value[cellKey(location.weekId, location.column)] ?? []).map(
+        (card) => card.id,
+      );
     }
   }
 
-  watch([options.weeks, () => options.boardStore.cards], () => syncCellLists(), {
+  watch(options.rows, () => syncCellLists(), {
     deep: true,
     immediate: true,
   });
 
-  return { cellLists, cellKey, getWeekColumns, handleDragStart, handleDragEnd, syncCellLists };
+  return { cellLists, cellKey, handleDragStart, handleDragEnd, syncCellLists };
+}
+
+export function toCellUpdates(payload: CardMovePayload): CellCardsUpdate[] {
+  const updates: CellCardsUpdate[] = [{ ...payload.source, cardIds: payload.sourceCardIds }];
+
+  if (
+    payload.source.weekId !== payload.target.weekId ||
+    payload.source.column !== payload.target.column
+  ) {
+    updates.push({ ...payload.target, cardIds: payload.targetCardIds });
+  }
+
+  return updates;
 }
 
 function getOriginalEvent(e: DraggableEvent) {
   return (e as unknown as { originalEvent?: MouseEvent }).originalEvent;
 }
 
-function getDragEndTargets(e: DraggableEvent) {
+function getDragEndTarget(e: DraggableEvent): CellLocation | null {
   const targetTd = e.to.closest("td[data-week-id]") as HTMLTableCellElement | null;
-  const targetWeekId = targetTd?.dataset.weekId;
-  const targetCol = targetTd?.dataset.column as CardColumn | undefined;
-  return { targetWeekId, targetCol };
+  const weekId = targetTd?.dataset.weekId;
+  const column = targetTd?.dataset.column as CardColumn | undefined;
+  return weekId && column ? { weekId, column } : null;
 }

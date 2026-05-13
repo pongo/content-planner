@@ -1,22 +1,26 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, toRef } from "vue";
 import { VueDraggable } from "vue-draggable-plus";
-import { useBoardStore } from "@/stores/board";
 import Card from "@/components/Card.vue";
 import { Plus, Check } from "@lucide/vue";
-import { useCardDrag } from "@/features/card/useCardDrag.ts";
-import type { CardRecord, WeekRecord } from "@/db/db";
+import { useCardDrag, type CardMovePayload } from "@/features/card/useCardDrag.ts";
+import type { BoardRow } from "@/domain/card.ts";
+import type { CardColumn } from "@/db/db";
 
 const props = defineProps<{
-  weeks: WeekRecord[];
+  rows: BoardRow[];
+  columns: CardColumn[];
 }>();
 
 const emit = defineEmits<{
-  addCard: [weekId: string, column: CardRecord["column"], text?: string];
-  addCardWithSelector: [weekId: string, column: CardRecord["column"]];
+  addCard: [weekId: string, column: CardColumn, text?: string];
+  addCardWithSelector: [weekId: string, column: CardColumn];
   addWeek: [title: string];
   weekDelete: [id: string];
   weekComplete: [id: string];
+  cardDelete: [id: string];
+  cardUpdate: [id: string, title: string];
+  cardsMove: [payload: CardMovePayload];
 }>();
 
 function handleAddWeek() {
@@ -33,15 +37,14 @@ const columnLabels: Record<string, string> = {
   SUN: "ВС",
 };
 
-const boardStore = useBoardStore();
-const columns = boardStore.columns;
+const isBoardEmpty = computed(() =>
+  props.rows.every((row) => row.cells.every((cell) => cell.cards.length === 0)),
+);
 
-const isBoardEmpty = computed(() => boardStore.cards.length === 0);
-
-const { cellLists, cellKey, getWeekColumns, handleDragStart, handleDragEnd } = useCardDrag({
-  weeks: toRef(props, "weeks"),
-  boardStore,
-  addCard: (weekId, column, text) => emit("addCard", weekId, column, text),
+const { cellLists, cellKey, handleDragStart, handleDragEnd } = useCardDrag({
+  rows: toRef(props, "rows"),
+  moveCards: (payload) => emit("cardsMove", payload),
+  copyCard: (weekId, column, text) => emit("addCard", weekId, column, text),
 });
 
 function handleDragover(e: DragEvent) {
@@ -84,17 +87,17 @@ onUnmounted(() => {
 
       <!-- Week Rows -->
       <tbody>
-        <tr v-for="week in weeks" :key="week.id" class="week">
+        <tr v-for="row in rows" :key="row.week.id" class="week">
           <!-- Add Card or Complete Week Button Cell -->
           <td
             class="h-[calc(var(--card-card-height)+8px*2+1px)] border-r border-b border-gray-200 bg-white"
           >
             <button
-              v-if="week.title === 'Categories'"
+              v-if="row.week.title === 'Categories'"
               class="group flex h-full w-full items-center justify-center text-gray-400 transition-colors"
               title="Добавить карточку"
               data-testid="add-category-card-button"
-              @click="emit('addCard', week.id, 'ALL')"
+              @click="emit('addCard', row.week.id, 'ALL')"
             >
               <Plus
                 class="h-6 w-6 rounded p-1 transition-colors group-hover:bg-gray-100 group-hover:text-gray-600"
@@ -105,7 +108,7 @@ onUnmounted(() => {
               class="group flex h-full w-full items-center justify-center text-gray-400 transition-colors"
               title="Завершить неделю и вернуть карточки"
               data-testid="complete-week-button"
-              @click="emit('weekComplete', week.id)"
+              @click="emit('weekComplete', row.week.id)"
             >
               <Check
                 class="h-6 w-6 rounded p-1 transition-colors group-hover:bg-gray-100 group-hover:text-green-600"
@@ -115,22 +118,22 @@ onUnmounted(() => {
 
           <!-- Card Cells -->
           <td
-            v-for="colInfo in getWeekColumns(week)"
-            :key="colInfo.key"
-            :colspan="colInfo.colspan"
+            v-for="cell in row.cells"
+            :key="cell.column"
+            :colspan="cell.colspan"
             class="relative border-r border-b border-gray-200 bg-gray-50 p-2 align-top last:border-r-0"
-            :data-week-id="week.id"
-            :data-column="colInfo.key"
+            :data-week-id="cell.weekId"
+            :data-column="cell.column"
             data-testid="board-cell"
             style="height: 1px"
-            @dblclick.exact="emit('addCard', week.id, colInfo.key)"
-            @dblclick.ctrl="emit('addCardWithSelector', week.id, colInfo.key)"
+            @dblclick.exact="emit('addCard', cell.weekId, cell.column)"
+            @dblclick.ctrl="emit('addCardWithSelector', cell.weekId, cell.column)"
           >
             <div class="flex h-full flex-col">
               <!-- vue-draggable-plus -->
               <VueDraggable
-                :key="cellKey(week.id, colInfo.key)"
-                v-model="cellLists[cellKey(week.id, colInfo.key)]!"
+                :key="cellKey(cell.weekId, cell.column)"
+                v-model="cellLists[cellKey(cell.weekId, cell.column)]!"
                 :group="{ name: 'cards', pull: true, put: true }"
                 class="flex w-full flex-1 flex-wrap content-start items-start gap-2"
                 :animation="150"
@@ -146,16 +149,18 @@ onUnmounted(() => {
                 "
                 :dragover-bubble="true"
                 @start="(e) => handleDragStart(e)"
-                @end="(e) => handleDragEnd(e, week.id, colInfo.key)"
+                @end="(e) => handleDragEnd(e, cell)"
               >
                 <Card
-                  v-for="card in cellLists[cellKey(week.id, colInfo.key)]"
+                  v-for="card in cellLists[cellKey(cell.weekId, cell.column)]"
                   :key="card.id"
                   :card="card"
+                  @delete="emit('cardDelete', $event)"
+                  @update="(id, title) => emit('cardUpdate', id, title)"
                 />
               </VueDraggable>
               <div
-                v-if="isBoardEmpty && week.title === 'Categories'"
+                v-if="isBoardEmpty && row.week.title === 'Categories'"
                 class="pointer-events-none absolute inset-0 flex items-center pl-2 text-sm text-gray-400 select-none"
               >
                 ← Добавьте карточку
