@@ -1,9 +1,15 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { BoardRecord, WeekRecord, CardRecord } from "@/db/db";
-import { getFirstLine, parseTitle } from "@/shared/utils/card-title";
-import type { Card } from "@/domain/card.ts";
-import type { BoardRow, CellCardsUpdate } from "@/domain/cell.ts";
+import type { CellCardsUpdate } from "@/domain/cell.ts";
+import {
+  BOARD_COLUMNS,
+  CATEGORIES_WEEK_TITLE,
+  createBoardRows,
+  createCardsView,
+  getCardsFirstLineCounts,
+  getDuplicateFirstLines,
+} from "@/domain/board-view.ts";
 import { createCompleteWeekChanges } from "@/domain/complete-week.ts";
 import { getWeeksByBoardDB } from "@/db/queries/get-weeks-by-board.ts";
 import { getAllBoardsDB } from "@/db/queries/get-all-boards.ts";
@@ -19,75 +25,20 @@ import { updateCardDB } from "@/db/commands/update-card.ts";
 import { deleteCardDB } from "@/db/commands/delete-card.ts";
 import { saveCellsCardsDB, type Cell } from "@/db/commands/save-cell-cards.ts";
 
-const COLUMNS: CardRecord["column"][] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
-
 export const useBoardStore = defineStore("board", () => {
   const currentBoard = ref<BoardRecord | null>(null);
   const weeks = ref<WeekRecord[]>([]);
   const cards = ref<CardRecord[]>([]);
   const loading = ref(false);
 
-  const columns = computed(() => COLUMNS);
-
-  const cardsFirstLineCounts = computed(() => {
-    const counts = new Map<string, number>();
-    for (const card of cards.value) {
-      if (card.title.startsWith("-")) continue;
-
-      const firstLine = getFirstLine(card.title);
-      if (!firstLine) continue;
-
-      counts.set(firstLine, (counts.get(firstLine) || 0) + 1);
-    }
-    return counts;
-  });
-
-  const duplicateFirstLines = computed(() => {
-    const duplicates = new Set<string>();
-    for (const [line, count] of cardsFirstLineCounts.value) {
-      if (count > 1) duplicates.add(line);
-    }
-    return duplicates;
-  });
-
-  const cardsView = computed<Card[]>(() =>
-    cards.value.map((card) => {
-      const titleInfo = parseTitle(card.title);
-      return {
-        id: card.id,
-        title: card.title,
-        titleInfo,
-        isDuplicate:
-          !card.title.startsWith("-") && duplicateFirstLines.value.has(titleInfo.firstLine),
-      };
-    }),
-  );
-
-  const cardsViewById = computed(() => new Map(cardsView.value.map((card) => [card.id, card])));
-
-  const boardRows = computed<BoardRow[]>(() =>
-    weeks.value.map((week) => ({
-      week,
-      cells: getColumnsForWeek(week).map((cell) => ({
-        weekId: week.id,
-        column: cell.column,
-        colspan: cell.colspan,
-        cards: getCardsForWeek(week.id, cell.column)
-          .map((record) => cardsViewById.value.get(record.id))
-          .filter((card): card is Card => card !== undefined),
-      })),
-    })),
-  );
+  const columns = computed(() => BOARD_COLUMNS);
+  const cardsFirstLineCounts = computed(() => getCardsFirstLineCounts(cards.value));
+  const duplicateFirstLines = computed(() => getDuplicateFirstLines(cards.value));
+  const cardsView = computed(() => createCardsView(cards.value));
+  const boardRows = computed(() => createBoardRows(weeks.value, cards.value));
 
   function getCardsForWeek(weekId: string, column: CardRecord["column"]) {
     return cards.value.filter((t) => t.weekId === weekId && t.column === column);
-  }
-
-  function getColumnsForWeek(
-    week: WeekRecord,
-  ): { column: CardRecord["column"]; colspan?: number }[] {
-    if (week.title === "Categories") return [{ column: "ALL", colspan: 7 }];
-    return COLUMNS.map((column) => ({ column }));
   }
 
   async function loadBoard(slug: string) {
@@ -150,7 +101,7 @@ export const useBoardStore = defineStore("board", () => {
   }
 
   async function completeWeek(weekId: string): Promise<void> {
-    const categoriesWeek = weeks.value.find((s) => s.title === "Categories");
+    const categoriesWeek = weeks.value.find((s) => s.title === CATEGORIES_WEEK_TITLE);
     if (!categoriesWeek) return;
 
     const changes = createCompleteWeekChanges(weekId, categoriesWeek.id, cards.value);
