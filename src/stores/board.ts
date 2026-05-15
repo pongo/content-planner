@@ -4,6 +4,7 @@ import type { BoardRecord, WeekRecord, CardRecord } from "@/db/db";
 import { getFirstLine, parseTitle } from "@/shared/utils/card-title";
 import type { Card } from "@/domain/card.ts";
 import type { BoardRow, CellCardsUpdate } from "@/domain/cell.ts";
+import { createCompleteWeekChanges } from "@/domain/complete-week.ts";
 import { getWeeksByBoardDB } from "@/db/queries/get-weeks-by-board.ts";
 import { getAllBoardsDB } from "@/db/queries/get-all-boards.ts";
 import { createWeekDB } from "@/db/commands/create-week.ts";
@@ -152,7 +153,8 @@ export const useBoardStore = defineStore("board", () => {
     const categoriesWeek = weeks.value.find((s) => s.title === "Categories");
     if (!categoriesWeek) return;
 
-    await completeWeekDB(weekId, categoriesWeek.id);
+    const changes = createCompleteWeekChanges(weekId, categoriesWeek.id, cards.value);
+    await completeWeekDB(weekId, changes);
     await reloadBoard();
   }
 
