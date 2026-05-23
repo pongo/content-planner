@@ -67,4 +67,53 @@ describe("createCompleteWeekChanges", () => {
       ["second-source", 3],
     ]);
   });
+
+  it("deletes regular cards already present in target week", () => {
+    const changes = createCompleteWeekChanges("week-1", "week-categories", [
+      makeCard({ id: "target-card", weekId: "week-categories", title: "Duplicate" }),
+      makeCard({ id: "duplicate-card", title: "Duplicate\nDetails" }),
+      makeCard({ id: "unique-card", title: "Unique\nDetails" }),
+    ]);
+
+    expect(changes.deleteCardIds).toEqual(["duplicate-card"]);
+    expect(changes.updateCards).toEqual([
+      expect.objectContaining({
+        id: "unique-card",
+        title: "Unique",
+        order: 1,
+      }),
+    ]);
+  });
+
+  it("keeps only first regular card with same first-line title", () => {
+    const changes = createCompleteWeekChanges("week-1", "week-categories", [
+      makeCard({ id: "first-card", title: "Duplicate\nFirst details" }),
+      makeCard({ id: "second-card", title: "Duplicate\nSecond details" }),
+    ]);
+
+    expect(changes.deleteCardIds).toEqual(["second-card"]);
+    expect(changes.updateCards).toEqual([
+      expect.objectContaining({
+        id: "first-card",
+        title: "Duplicate",
+        order: 0,
+      }),
+    ]);
+  });
+
+  it("moves permanent cards even when first-line title already exists", () => {
+    const changes = createCompleteWeekChanges("week-1", "week-categories", [
+      makeCard({ id: "target-card", weekId: "week-categories", title: "Permanent" }),
+      makeCard({ id: "permanent-card", title: "Permanent\n=\nDetails" }),
+    ]);
+
+    expect(changes.deleteCardIds).toEqual([]);
+    expect(changes.updateCards).toEqual([
+      expect.objectContaining({
+        id: "permanent-card",
+        title: "Permanent\n=\nDetails",
+        order: 1,
+      }),
+    ]);
+  });
 });

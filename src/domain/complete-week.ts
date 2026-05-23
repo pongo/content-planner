@@ -16,6 +16,12 @@ export function createCompleteWeekChanges(
   const deleteCardIds: string[] = [];
   const updateCards: CardRecord[] = [];
 
+  const targetWeekCardsTitles = new Set<string>(
+    cards
+      .filter((card) => card.weekId === targetWeekId)
+      .map((card) => parseTitle(card.title).firstLine),
+  );
+
   for (const card of cards) {
     if (card.weekId !== weekId) continue;
 
@@ -25,6 +31,12 @@ export function createCompleteWeekChanges(
     }
 
     const { isPermanent, firstLine } = parseTitle(card.title);
+
+    if (!isPermanent && targetWeekCardsTitles.has(firstLine)) {
+      deleteCardIds.push(card.id);
+      continue;
+    }
+
     updateCards.push({
       ...card,
       weekId: targetWeekId,
@@ -32,6 +44,7 @@ export function createCompleteWeekChanges(
       title: isPermanent ? card.title : firstLine,
       order: nextOrder++,
     });
+    targetWeekCardsTitles.add(firstLine);
   }
 
   return { deleteCardIds, updateCards };
